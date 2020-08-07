@@ -1,0 +1,1 @@
+# **Template Plugin for DarkBot**

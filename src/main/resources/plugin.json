@@ -1,0 +1,12 @@
+{
+  "name": "KEKW",
+  "author": "ace",
+  "version": "1.0.2",
+  "minVersion": "1.13.17 beta 31",
+  "supportedVersion": "1.13.17 beta 31",
+  "features": [
+    "eu.darkbot.kekawce.modules.chromintmpmodule.ChrominFarmerTmpModule",
+    "eu.darkbot.kekawce.modules.infectiontmpmodule.InfectionTmpModule",
+    "eu.darkbot.kekawce.modules.tradertmpmodule.OreTraderTmpModule"
+  ]
+}
