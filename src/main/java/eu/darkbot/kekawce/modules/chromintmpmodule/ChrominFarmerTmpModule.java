@@ -15,7 +15,6 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 
 import eu.darkbot.kekawce.DefaultInstallable;
-import eu.darkbot.kekawce.VerifierChecker;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -67,9 +66,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public void install(Main main) {
-        if (!VerifierChecker.getAuthApi().requireDonor()) return;
-
-        DefaultInstallable.super.install(main);
+        if (!DefaultInstallable.Install.install(main, DefaultInstallable.super::install))
+            return;
 
         super.install(main);
 

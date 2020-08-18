@@ -18,7 +18,6 @@ import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
 
 import eu.darkbot.kekawce.DefaultInstallable;
-import eu.darkbot.kekawce.VerifierChecker;
 
 import java.util.Comparator;
 import java.util.List;
@@ -45,9 +44,8 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public void install(Main main) {
-        if (!VerifierChecker.getAuthApi().requireDonor()) return;
-
-        DefaultInstallable.super.install(main);
+        if (!DefaultInstallable.Install.install(main, DefaultInstallable.super::install))
+            return;
 
         super.install(main);
 

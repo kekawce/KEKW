@@ -18,11 +18,9 @@ public class Updater {
 
     private static Remote remote;
 
-    private boolean checked = false; // FIXME ADD UPDATE CHECKER
-
     public static synchronized void checkUpdate(Main main, FeatureDefinition<?> feature) {
-        if ((remote = getRemote()).download != null &&
-                !remote.latest.equals(Version.getVersion(feature)))
+        if (remote == null && (remote = getRemote()).download != null &&
+                feature != null && !remote.latest.equals(Version.getVersion(feature)))
             UpdateGui.show(main, remote);
     }
 

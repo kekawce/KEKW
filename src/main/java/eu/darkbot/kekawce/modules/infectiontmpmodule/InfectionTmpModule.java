@@ -15,7 +15,6 @@ import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 
 import eu.darkbot.kekawce.DefaultInstallable;
-import eu.darkbot.kekawce.VerifierChecker;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -40,9 +39,8 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public void install(Main main) {
-        if (!VerifierChecker.getAuthApi().requireDonor()) return;
-
-        DefaultInstallable.super.install(main);
+        if (!DefaultInstallable.Install.install(main, DefaultInstallable.super::install))
+            return;
 
         super.install(main);
         this.main = main;
