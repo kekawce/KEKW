@@ -7,6 +7,9 @@ import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.gui.tree.components.JPercentField;
 
 public class InfectionConfig {
+    @Option(value = "Enable feature", description = "check this to enable this feature/plugin")
+    public boolean ENABLE_FEATURE = false;
+
     @Option("Infect mine key")
     public Character INFECT_KEY;
 

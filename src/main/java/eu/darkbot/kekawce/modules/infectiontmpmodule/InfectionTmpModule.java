@@ -15,6 +15,7 @@ import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 
 import eu.darkbot.kekawce.DefaultInstallable;
+import eu.darkbot.kekawce.Version;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -70,11 +71,12 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
     @Override
     public String status() {
         long activeFor = System.currentTimeMillis() - this.activeTime;
-        return (isSafe() ? "Infecting..." : "Not safe aborting infection") + activeFor + "ms";
+        return "KEKW " + Version.VERSION + (isSafe() ? " | Infecting... | " : " | Not safe aborting infection | ") + activeFor + "ms";
     }
 
     @Override
     public void tickBehaviour() {
+        if (!config.ENABLE_FEATURE) return;
         if (!canInfect() || System.currentTimeMillis() - this.activeTime < 60_000L) return;
 
         if (waitTime == 0) waitTime = System.currentTimeMillis();

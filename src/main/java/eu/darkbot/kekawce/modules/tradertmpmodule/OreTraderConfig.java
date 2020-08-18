@@ -12,6 +12,9 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public class OreTraderConfig {
+    @Option(value = "Enable feature", description = "check this to enable this feature/plugin")
+    public boolean ENABLE_FEATURE = false;
+
     @Option(value = "Sell map", description = "goes to this map to sell resources")
     @Editor(JListField.class)
     @Options(Maps.class)

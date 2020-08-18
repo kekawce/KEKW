@@ -30,7 +30,7 @@ public class Changelog extends JPanel {
 
             for (Remote.Version.Message message : version.changelog) {
 
-                label = new JTag(preprocessTag(message.title.text), getColor(message.title.color));
+                label = new JTag(preprocessTag(message.title.text), Color.decode(message.title.color));
                 label.setFont(new Font("sans", Font.BOLD, 16));
                 label.setForeground(Color.WHITE);
                 c.fill = GridBagConstraints.NONE;
@@ -77,16 +77,5 @@ public class Changelog extends JPanel {
 
     private static String preprocessTag(String s) {
         return " " + s + " ";
-    }
-
-    private static Color getColor(String s) {
-        switch (s) {
-            case "blue": return new Color(34, 0, 224);
-            case "purple": return new Color(137, 71, 235);
-            case "green": return new Color(43, 174, 102);
-            case "red": return new Color(237, 28, 36);
-            case "gray":
-            default: return new Color(134, 153, 172);
-        }
     }
 }

@@ -15,6 +15,7 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 
 import eu.darkbot.kekawce.DefaultInstallable;
+import eu.darkbot.kekawce.Version;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -100,7 +101,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public String status() {
-        return "Chromin Farmer | " + this.chrominFarmerState.toString() + " | Last Wave";
+        return "KEKW " + Version.VERSION + " | Chromin Farmer | " + this.chrominFarmerState.toString() + " | Last Wave";
     }
 
     @Override
@@ -110,6 +111,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public void tickTask() {
+        if (!config.ENABLE_FEATURE) return;
         buyLivesForZeta();
         updateStats();
         updateLocationStats();
@@ -117,6 +119,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public void tickBehaviour() {
+        if (!config.ENABLE_FEATURE) return;
         this.collector.tick();
 
         if (!canStartChrominFarmingModule()) return;
