@@ -47,7 +47,7 @@ public class Changelog extends JPanel {
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
                 textArea.setColumns(30);
-                textArea.setText("• " + String.join("\n• ", message.body) + "\n");
+                textArea.setText("• " + String.join("\n\n• ", message.body) + "\n");
                 c.fill = GridBagConstraints.BOTH;
                 c.gridx = 1;
                 c.gridy = texty++;
