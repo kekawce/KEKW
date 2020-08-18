@@ -17,6 +17,9 @@ import java.util.Map;
 
 public class ChrominFarmerConfig {
 
+    @Option(value = "Enable feature", description = "check this to enable this feature/plugin")
+    public boolean ENABLE_FEATURE = false;
+
     @Option(value = "", description = "click to show stats")
     @Editor(value = JStatsComponent.class, shared = true)
     public transient Lazy<String> STATUS_UPDATE;

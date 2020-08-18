@@ -18,6 +18,7 @@ import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
 
 import eu.darkbot.kekawce.DefaultInstallable;
+import eu.darkbot.kekawce.Version;
 
 import java.util.Comparator;
 import java.util.List;
@@ -71,7 +72,7 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
     @Override
     public String status() {
         long sellTimer = (System.currentTimeMillis() - this.sellTime);
-        return "CargoSeller | Selling | "
+        return "KEKW " + Version.VERSION + " | CargoSeller | Selling | "
                 + Maps.MAPS.get(config.SELL_MAP_INDEX) + " Station | "
                 + (sellTimer <= 5000L ? sellTimer + "ms" : "");
     }
@@ -88,6 +89,7 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public void tickBehaviour() {
+        if (!config.ENABLE_FEATURE) return;
         boolean hasTarget = !(this.hero.target == null || this.hero.target.removed);
         if (hasTarget && this.config.FINISH_TARGET_BEFORE_SELLING) return;
 
