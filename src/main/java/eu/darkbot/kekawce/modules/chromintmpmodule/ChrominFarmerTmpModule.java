@@ -14,6 +14,7 @@ import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 
+import eu.darkbot.kekawce.DefaultInstallable;
 import eu.darkbot.kekawce.VerifierChecker;
 
 import java.text.SimpleDateFormat;
@@ -22,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 @Feature(name = "Zeta Chromin Farmer", description = "suicides on last wave in zeta for more chromin")
-public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour, Task, Configurable<ChrominFarmerConfig> {
+public class ChrominFarmerTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
     private static enum ChrominFarmerState {
         COLLECTING,
@@ -68,11 +69,14 @@ public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour,
     public void install(Main main) {
         if (!VerifierChecker.getAuthApi().requireDonor()) return;
 
+        DefaultInstallable.super.install(main);
+
+        super.install(main);
+
         this.chrominFarmerState = ChrominFarmerState.WAITING;
         this.chrominEvent = main.facadeManager.chrominEvent;
         this.buyLifeManager = new BuyGalaxyLifeManager(main);
 
-        super.install(main);
         this.main = main;
         this.hero = main.hero;
         this.npcs = main.mapManager.entities.npcs;
@@ -166,9 +170,9 @@ public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour,
         Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
         if (gate == null || this.hero == null || this.npcs == null) return false;
 
-        String npcName = ZetaWaves.ZETA_WAVES.get(this.config.ZETA_WAVES - (this.config.ZETA_WAVES == ZetaWaves.ZETA_WAVES.size() - 1 ? 1 : 0));
+        String npcName = ZetaWaves.ZETA_WAVES.get(this.config.ZETA_WAVE_INDEX - (this.config.ZETA_WAVE_INDEX == ZetaWaves.ZETA_WAVES.size() - 1 ? 1 : 0));
         boolean canSeeNpc = this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(npcName));
-        if (this.config.ZETA_WAVES == ZetaWaves.ZETA_WAVES.size() - 1) canSeeNpc = canSeeNpc && this.npcs.size() == 2;
+        if (this.config.ZETA_WAVE_INDEX == ZetaWaves.ZETA_WAVES.size() - 1) canSeeNpc = canSeeNpc && this.npcs.size() == 2;
 
         return gate.getLivesLeft() > 1 && this.hero.map.id == ZETA_LAST_MAP_ID && canSeeNpc;
     }

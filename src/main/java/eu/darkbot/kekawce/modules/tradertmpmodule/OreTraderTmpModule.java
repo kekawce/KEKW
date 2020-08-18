@@ -17,6 +17,7 @@ import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
 
+import eu.darkbot.kekawce.DefaultInstallable;
 import eu.darkbot.kekawce.VerifierChecker;
 
 import java.util.Comparator;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 @Feature(name = "Ore Trader", description = "When cargo is full travels to base to sell")
-public class OreTraderTmpModule extends TemporalModule implements Behaviour, Configurable<OreTraderConfig> {
+public class OreTraderTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Configurable<OreTraderConfig> {
 
     private Main main;
     private Drive drive;
@@ -45,6 +46,8 @@ public class OreTraderTmpModule extends TemporalModule implements Behaviour, Con
     @Override
     public void install(Main main) {
         if (!VerifierChecker.getAuthApi().requireDonor()) return;
+
+        DefaultInstallable.super.install(main);
 
         super.install(main);
 

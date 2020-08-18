@@ -3,13 +3,18 @@ package eu.darkbot.kekawce.updater;
 import java.util.List;
 
 class Remote {
-    String latest, download;
+    String latest, download = null;
+    List<Version> versions;
 
-    Remote(String latest, String download) {
+    Remote() {}
+    Remote(String latest, String download, List<Version> versions) {
         this.latest = latest;
         this.download = download;
+        this.versions = versions;
     }
 
+    // https://gitversion.readthedocs.io/en/latest/input/docs/reference/intro-to-semver/
+    // version: {major}.{minor}.{patch}-{tag}+{buildmetadata}
     static class Version {
         String version;
         List<Message> changelog;
