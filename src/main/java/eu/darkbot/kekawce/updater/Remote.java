@@ -19,11 +19,11 @@ class Remote {
             static class Title {
                 String color, text;
 
-                // blue   Hex: #FF2200E0
-                // purple Hex: #FF8947EB
-                // green  Hex: #FF2BAE66
-                // red    Hex: #FFED1C24
-                // gray   Hex: #FF8699AC
+                // blue   Hex: #2200E0
+                // purple Hex: #8947EB
+                // green  Hex: #2BAE66
+                // red    Hex: #ED1C24
+                // gray   Hex: #8699AC
             }
         }
     }
