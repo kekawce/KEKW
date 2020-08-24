@@ -1,5 +1,8 @@
 package eu.darkbot.kekawce.updater;
 
+import com.github.manolo8.darkbot.gui.utils.Popups;
+import eu.darkbot.kekawce.ImageUtils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -61,6 +64,7 @@ public class Changelog extends JPanel {
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(25);
         scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, MAX_HEIGHT));
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -73,6 +77,21 @@ public class Changelog extends JPanel {
 
         add(scrollPane);
 
+    }
+
+    static void showChangelog() {
+        JOptionPane changelogPane = new JOptionPane(new Changelog(Updater.remote.versions), JOptionPane.PLAIN_MESSAGE);
+        Popups.showMessageSync("Release Notes", changelogPane, jDialog -> SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (jDialog.getHeight() > Changelog.MAX_HEIGHT)
+                    jDialog.setSize(new Dimension(jDialog.getWidth(), Changelog.MAX_HEIGHT + 100));
+
+                jDialog.setLocationRelativeTo(null);
+
+                ImageUtils.setIconImage(jDialog);
+            }
+        }));
     }
 
     private static String preprocessTag(String s) {
