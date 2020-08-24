@@ -20,7 +20,6 @@ public class UpdateGui {
     public static boolean SUCCESSFULLY_INSTALLED = false;
 
     static void show(Main main, Remote remote) {
-        List<Remote.Version> versions = remote.versions;
 
         JPanel content = new UpdatePanel(Version.VERSION, remote.latest);
 
