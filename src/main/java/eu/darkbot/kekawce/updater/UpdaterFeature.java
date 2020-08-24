@@ -112,7 +112,7 @@ public class UpdaterFeature implements DefaultInstallable, Task, Configurable<Up
                     config.STATUS.send("<html><span style=\"font-weight:bold;font-size:32px;\">" + updateStatus.text + "</span></html>");
 
                     Updater.setRemote(null);
-                    Updater.checkUpdate(main, feature);
+                    Updater.checkUpdate(main, feature, true);
                     if (Updater.showErrorMessage() || !ImageUtils.areAllImagesLoaded()) {
                         update(config, UpdateStatus.ERROR,
                                 UpdateStatus.ERROR.text,

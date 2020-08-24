@@ -10,8 +10,7 @@ public interface DefaultInstallable extends Installable {
     @Override
     default void install(Main main) throws AuthenticationException {
         if (!VerifierChecker.getAuthApi().requireDonor()) throw new AuthenticationException();
-        if (!main.isRunning())
-            Updater.checkUpdate(main, main.featureRegistry.getFeatureDefinition(this));
+        Updater.checkUpdate(main, main.featureRegistry.getFeatureDefinition(this), !main.isRunning());
     }
 
     class Install {

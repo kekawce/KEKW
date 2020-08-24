@@ -30,12 +30,13 @@ public class Updater {
 
     static Remote remote;
 
-    public static synchronized void checkUpdate(Main main, FeatureDefinition<?> feature) {
+    public static synchronized void checkUpdate(Main main, FeatureDefinition<?> feature, boolean show) {
         lastChecked = new Date();
 
         if (remote == null && (remote = getRemote()).download != null &&
-                feature != null && !remote.latest.equals(Version.getVersion(feature)))
-            UpdateGui.show(main, remote);
+                feature != null && !remote.latest.equals(Version.getVersion(feature))) {
+            if (show) UpdateGui.show(main, remote);
+        }
     }
 
     static Remote getRemote() {
