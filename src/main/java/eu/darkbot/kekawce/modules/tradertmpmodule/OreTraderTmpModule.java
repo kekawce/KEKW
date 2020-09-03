@@ -22,7 +22,7 @@ import eu.darkbot.kekawce.Version;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Feature(name = "Ore Trader", description = "When cargo is full travels to base to sell")
 public class OreTraderTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Configurable<OreTraderConfig> {
@@ -41,7 +41,8 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     private OreTraderConfig config;
 
-    private long sellTime;
+    private long sellTime, sellClick;
+    private boolean isDoneSelling = false;
 
     @Override
     public void install(Main main) {
@@ -71,10 +72,8 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public String status() {
-        long sellTimer = (System.currentTimeMillis() - this.sellTime);
         return "KEKW " + Version.VERSION + " | CargoSeller | Selling | "
-                + Maps.MAPS.get(config.SELL_MAP_INDEX) + " Station | "
-                + (sellTimer <= 5000L ? sellTimer + "ms" : "");
+                + Maps.MAPS.get(config.SELL_MAP_INDEX) + " Station";
     }
 
     @Override
@@ -102,17 +101,15 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
     public void tickModule() {
         sell();
 
-        // assumes resources has been sold when cargo < total cargo space
-        // only checks if cargo is almost full to prevent bot from goingBack()
-        // when autoupgrade cpu in use
-        if ((this.stats.deposit < this.stats.depositTotal - 100 && System.currentTimeMillis() - this.sellTime > 1500L)
-                || (System.currentTimeMillis() - this.sellTime > 5000L && this.sellTime != 0)) { // stuck on trade window
+        if (isDoneSelling) {
             if (this.oreTrade.visible) {
                 this.sellTime = 0;
+                this.sellClick = 0;
                 this.oreTrade.showTrade(false, null);
             }
             else {
                 this.ggExitPortal = null;
+                this.isDoneSelling = false;
                 goBack();
             }
         }
@@ -137,16 +134,26 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
         else {
             this.bases.stream().filter(b -> b instanceof BaseRefinery).findFirst()
                     .ifPresent((b) -> {
-                        if (b.locationInfo.distance(this.hero) > 250.0D) {
-                            this.drive.move(b);
+                        if (b.locationInfo.distance(this.hero) > 200.0D ||
+                                (System.currentTimeMillis() - sellTime > 5000 && sellTime != 0)) { // trade btn not appearing
+                            this.drive.move(b.locationInfo.now.x + ThreadLocalRandom.current().nextDouble(50.),
+                                    b.locationInfo.now.y + ThreadLocalRandom.current().nextDouble(50.));
+                            this.sellTime = 0;
                         }
-                        else if (this.oreTrade.showTrade(true, b)) {
+                        else if (!this.isDoneSelling && this.oreTrade.showTrade(true, b)) {
+                            if (this.sellClick == 0) this.sellClick = System.currentTimeMillis();
                             if (this.sellTime == 0) this.sellTime = System.currentTimeMillis();
+                            if (System.currentTimeMillis() - sellClick < config.ADVANCED.SELL_WAIT) return;
 
-                            Set<OreTradeGui.Ore> ores = config.TOGGLE;
-                            for (OreTradeGui.Ore ore : ores) {
+                            for (OreTradeGui.Ore ore : config.TOGGLE) {
                                 this.oreTrade.sellOre(ore);
+                                try {
+                                    Thread.sleep(config.ADVANCED.SELL_DELAY);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
+                            isDoneSelling = true;
                         }
                     });
         }
