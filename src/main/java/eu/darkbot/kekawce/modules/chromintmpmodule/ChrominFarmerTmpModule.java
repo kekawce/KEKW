@@ -25,7 +25,7 @@ import java.util.List;
 @Feature(name = "Zeta Chromin Farmer", description = "suicides on last wave in zeta for more chromin")
 public class ChrominFarmerTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
-    private static enum ChrominFarmerState {
+    private enum ChrominFarmerState {
         COLLECTING,
         SUICIDING,
         WAITING;
@@ -38,7 +38,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     private ChrominFarmerTmpModule.ChrominFarmerState chrominFarmerState;
 
     private ChrominProxy chrominEvent;
-    private double oldAmt, earnedAmt;
+    private double oldAmt = -1.0D, earnedAmt;
 
     private static final int ZETA_ID = 6; // id from com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyGate
     private static final int ZETA_FIRST_MAP_ID = 71; // name: "GG ζ 1", first map in zeta
@@ -63,7 +63,11 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     private boolean isLastLocStatsInitialized;
     private SimpleDateFormat formatter;
 
-    public ChrominFarmerTmpModule() { this.oldAmt = -1.0D; }
+    //TODO: add improvement to chromin farmer
+    //TODO: 1ST GET WAVE NUMBERS FOR LAST AND 2ND LAST WAVE
+
+    // TODO:     Last wave # >= 26
+    // TODO: 2nd Last wave # >= 24
 
     @Override
     public void install(Main main) {
@@ -119,6 +123,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public void tickBehaviour() {
+        System.out.println(main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID)).getCurrentWave()); // FIXME DEBUGINNG
+
         if (!config.ENABLE_FEATURE) return;
         this.collector.tick();
 
@@ -171,9 +177,10 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
         Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
         if (gate == null || this.hero == null || this.npcs == null) return false;
 
-        String npcName = ZetaWaves.ZETA_WAVES.get(this.config.ZETA_WAVE_INDEX - (this.config.ZETA_WAVE_INDEX == ZetaWaves.ZETA_WAVES.size() - 1 ? 1 : 0));
+        // FIXME
+        String npcName = ZetaWaves.ZETA_WAVES.get(666 - (666 == ZetaWaves.ZETA_WAVES.size() - 1 ? 1 : 0));
         boolean canSeeNpc = this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(npcName));
-        if (this.config.ZETA_WAVE_INDEX == ZetaWaves.ZETA_WAVES.size() - 1) canSeeNpc = canSeeNpc && this.npcs.size() == 2;
+        if (666 == ZetaWaves.ZETA_WAVES.size() - 1) canSeeNpc = canSeeNpc && this.npcs.size() == 2;
 
         return gate.getLivesLeft() > 1 && this.hero.map.id == ZETA_LAST_MAP_ID && canSeeNpc;
     }

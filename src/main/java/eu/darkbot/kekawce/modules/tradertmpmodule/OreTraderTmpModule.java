@@ -99,6 +99,11 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public void tickModule() {
+        //FIXME STUCK IN GG SOMETIMES, weird bug where sometimes will jump but does not go back to base goes to next map
+
+        // to prevent bug where bot will get stuck in GG due to jumping into wrong portal (most likely due to some client/server de-sync)
+        if (this.hero.map.gg && !this.hero.map.name.equals("LoW") && this.ggExitPortal == null) goBack();
+
         sell();
 
         if (isDoneSelling) {
@@ -139,21 +144,22 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
                             this.drive.move(b.locationInfo.now.x + ThreadLocalRandom.current().nextDouble(50.),
                                     b.locationInfo.now.y + ThreadLocalRandom.current().nextDouble(50.));
                             this.sellTime = 0;
-                        }
-                        else if (!this.isDoneSelling && this.oreTrade.showTrade(true, b)) {
-                            if (this.sellClick == 0) this.sellClick = System.currentTimeMillis();
+                        } else {
                             if (this.sellTime == 0) this.sellTime = System.currentTimeMillis();
-                            if (System.currentTimeMillis() - sellClick < config.ADVANCED.SELL_WAIT) return;
+                            if (!this.isDoneSelling && this.oreTrade.showTrade(true, b)) {
+                                if (this.sellClick == 0) this.sellClick = System.currentTimeMillis();
+                                if (System.currentTimeMillis() - sellClick < config.ADVANCED.SELL_WAIT) return;
 
-                            for (OreTradeGui.Ore ore : config.TOGGLE) {
-                                this.oreTrade.sellOre(ore);
-                                try {
-                                    Thread.sleep(config.ADVANCED.SELL_DELAY);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
+                                for (OreTradeGui.Ore ore : config.TOGGLE) {
+                                    this.oreTrade.sellOre(ore);
+                                    try {
+                                        Thread.sleep(config.ADVANCED.SELL_DELAY);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
+                                isDoneSelling = true;
                             }
-                            isDoneSelling = true;
                         }
                     });
         }

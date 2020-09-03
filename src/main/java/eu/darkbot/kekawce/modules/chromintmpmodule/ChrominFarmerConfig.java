@@ -31,10 +31,15 @@ public class ChrominFarmerConfig {
     @Num(min = 0, max = 100, step = 1)
     public int BUY_LIVES;
 
-    @Option(value = "Suicides on this wave", description = "bot will suicide on this wave in last map of zeta")
+    @Option(value = "Suicides on this wave", description = "bot will suicide either on the 1st or 2nd devourer wave")
     @Editor(JListField.class)
-    @Options(ZetaWaves.class)
-    public int ZETA_WAVE_INDEX;
+    @Options(ZetaMacroWave.class)
+    public int ZETA_MACRO_WAVE;
+
+    @Option(value = "Suicides on this micro wave", description = "bot will suicide on this wave in last map of zeta")
+    @Editor(JListField.class)
+    @Options(ZetaMicroWaves.class)
+    public String ZETA_MICRO_WAVE;
 
     @Option(value = "Collect", description = "")
     public Collector COLLECTOR;
@@ -45,7 +50,6 @@ public class ChrominFarmerConfig {
     public ChrominFarmerConfig() {
         this.BUY_LIVES = 0;
         this.COLLECTOR = new ChrominFarmerConfig.Collector();
-        this.ZETA_WAVE_INDEX = 6;
         this.STATUS_UPDATE = new Lazy.NoCache();
         this.STATS_INFO = new LinkedHashMap<String, Integer>() {{
             put("Lives Left", -2);
