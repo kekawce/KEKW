@@ -99,8 +99,6 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public void tickModule() {
-        //FIXME STUCK IN GG SOMETIMES, weird bug where sometimes will jump but does not go back to base goes to next map
-
         // to prevent bug where bot will get stuck in GG due to jumping into wrong portal (most likely due to some client/server de-sync)
         if (this.hero.map.gg && !this.hero.map.name.equals("LoW") && this.ggExitPortal == null) goBack();
 

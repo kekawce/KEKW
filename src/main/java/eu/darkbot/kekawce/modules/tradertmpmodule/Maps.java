@@ -12,7 +12,7 @@ public class Maps extends OptionList<Integer> {
         return MAPS.indexOf(text);
     }
     public String getText(Integer value) {
-        return (String)MAPS.get(value);
+        return MAPS.get(value);
     }
     public List<String> getOptions() {
         return MAPS;

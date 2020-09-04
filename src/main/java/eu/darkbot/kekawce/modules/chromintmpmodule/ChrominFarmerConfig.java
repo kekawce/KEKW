@@ -33,19 +33,19 @@ public class ChrominFarmerConfig {
 
     @Option(value = "Suicides on this wave", description = "bot will suicide either on the 1st or 2nd devourer wave")
     @Editor(JListField.class)
-    @Options(ZetaMacroWave.class)
-    public int ZETA_MACRO_WAVE;
+    @Options(Waves.class)
+    public int ZETA_WAVE = 0;
 
-    @Option(value = "Suicides on this micro wave", description = "bot will suicide on this wave in last map of zeta")
+    @Option(value = "Suicides on this sub-wave", description = "bot will suicide on this sub-wave")
     @Editor(JListField.class)
-    @Options(ZetaMicroWaves.class)
-    public String ZETA_MICRO_WAVE;
+    @Options(SubWaves.class)
+    public String ZETA_SUB_WAVE = "All npcs gone (only devourer left)";
 
     @Option(value = "Collect", description = "")
     public Collector COLLECTOR;
 
-    @Option(value = "Location Info.", description = "")
-    public ChrominFarmerConfig.LocationInfo LOCATION_INFO;
+//    @Option(value = "Location Info.", description = "")
+//    public ChrominFarmerConfig.LocationInfo LOCATION_INFO = new ChrominFarmerConfig.LocationInfo();;
 
     public ChrominFarmerConfig() {
         this.BUY_LIVES = 0;
@@ -60,7 +60,6 @@ public class ChrominFarmerConfig {
             put("Chromin Per Hr", -2);
         }};
         this.STATS_INFO_UPDATE = new Lazy.NoCache();
-        this.LOCATION_INFO = new ChrominFarmerConfig.LocationInfo();
     }
 
     public static class Collector {
