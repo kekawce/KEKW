@@ -8,6 +8,7 @@ class Remote {
 
     // https://gitversion.readthedocs.io/en/latest/input/docs/reference/intro-to-semver/
     // version: {major}.{minor}.{patch}-{tag}+{buildmetadata}
+    // TODO: Remember to update version in plugin.json every new update
     static class Version {
         String version;
         List<Message> changelog;
