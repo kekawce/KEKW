@@ -31,6 +31,14 @@ public class ChrominFarmerConfig {
     @Num(min = 0, max = 100, step = 1)
     public int BUY_LIVES;
 
+    @Option(value = "Cost to buy first life",
+            description = "how much it costs to buy the first life\n" +
+            "for normal players it should be 5000\n" +
+            "for premium players it should be 4750\n" +
+            "for players with premium and rebate it should be 3500")
+    @Num(min = 1, max = 5000, step = 50)
+    public int FIRST_LIFE_COST = 5000;
+
     @Option(value = "Suicides on this wave", description = "bot will suicide either on the 1st or 2nd devourer wave")
     @Editor(JListField.class)
     @Options(Waves.class)

@@ -58,9 +58,9 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     private boolean hasBeenUpdatedOnEmptyMap;
 
     private long lastStatsCheck;
-    private long lastLocStatsCheck;
+    //private long lastLocStatsCheck;
     private boolean isLastStatsInitialized;
-    private boolean isLastLocStatsInitialized;
+    //private boolean isLastLocStatsInitialized;
     private SimpleDateFormat formatter;
 
     private boolean hasSeenLastSubWave;
@@ -161,7 +161,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     private ChrominFarmerTmpModule.ChrominFarmerState getChrominFarmerState() {
-        if (this.hero.map.id == ZETA_LAST_MAP_ID) {
+        if (canStartChrominFarmingModule()) {
             if (this.collector.hasBoxes()) return ChrominFarmerState.COLLECTING;
             return ChrominFarmerState.SUICIDING;
         }
@@ -170,6 +170,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     private boolean canStartChrominFarmingModule() {
         Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
+        if (gate.getLivesLeft() <= 1 || this.hero.map.id != ZETA_LAST_MAP_ID) return false;
         if (gate == null || this.hero == null || this.npcs == null) return false;
 
         if (this.config.ZETA_WAVE == 0 && !(24 <= gate.getCurrentWave())) return false;
@@ -182,10 +183,10 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
                     24 <= gate.getCurrentWave() && gate.getCurrentWave() < 26
                     ? this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Infernal"))
                     : this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Kristallin"));
-            return gate.getLivesLeft() > 1 && this.hero.map.id == ZETA_LAST_MAP_ID && hasSeenLastSubWave && npcs.size() == 1;
+            return hasSeenLastSubWave && npcs.size() == 1;
         } else {
             boolean canSeeNpc = this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(subwave));
-            return gate.getLivesLeft() > 1 && this.hero.map.id == ZETA_LAST_MAP_ID && canSeeNpc;
+            return canSeeNpc;
         }
     }
 
@@ -216,7 +217,9 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     private void buyLivesForZeta() {
         Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
-        this.livesBought = (int)(Math.log(gate.getLifePrice() / 5_000) / Math.log(2));
+        if (gate.getLivesLeft() == -1) return;
+
+        this.livesBought = (int)(Math.log(gate.getLifePrice() / config.FIRST_LIFE_COST) / Math.log(2));
 
         if (this.livesBought >= this.config.BUY_LIVES || this.config.BUY_LIVES == 0) return;
 
@@ -255,11 +258,14 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     public void updateChromin(double currAmt) {
-        double diff = currAmt - totalAmt;
+        if (this.totalAmt == -1.0D) {
+            this.totalAmt = currAmt;
+            return;
+        }
+        if (currAmt <= 0.0D) return;
 
-        if (this.totalAmt >= 0.0D && diff > 0.0D)
-            this.earnedAmt += diff;
-
+        double diff = currAmt - this.totalAmt;
+        if (diff > 0.0D) earnedAmt += diff;
         this.totalAmt = currAmt;
     }
 

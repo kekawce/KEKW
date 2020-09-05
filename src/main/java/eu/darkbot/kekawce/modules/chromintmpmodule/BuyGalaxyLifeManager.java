@@ -13,10 +13,6 @@ public class BuyGalaxyLifeManager {
     }
 
     public void buyLivesForZeta(int numLives) {
-        if (-1 == main.backpage.galaxyManager
-                .getGalaxyInfo()
-                .getGate(Integer.valueOf(ChrominFarmerTmpModule.ZETA_ID))
-                .getLivesLeft()) return;
         for (int i = 0; i < numLives; i++) {
             buyLifeForZeta();
             main.backpage.galaxyManager.updateGalaxyInfo(500);
