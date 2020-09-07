@@ -22,7 +22,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-@Feature(name = "Zeta Chromin Farmer", description = "suicides on last wave in zeta for more chromin")
+// FIXME failed to update
+// FIXME incorrect suiciding
+@Feature(name = "Zeta Chromin Farmer alpha 1", description = "suicides on last wave in zeta for more chromin")
 public class ChrominFarmerTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
     private enum ChrominFarmerState {
@@ -101,7 +103,11 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public String status() {
-        return "KEKW " + Version.VERSION + " | Chromin Farmer | " + this.chrominFarmerState.toString() + " | Last Wave";
+        Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
+        return String.format("KEKW %s | Chromin Farmer | %s | %s",
+                Version.VERSION,
+                this.chrominFarmerState.toString(),
+                (gate.getCurrentWave() >= 26 ? "2nd devourer" : "1st devourer"));
     }
 
     @Override
@@ -112,6 +118,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     @Override
     public void tickTask() {
         if (!config.ENABLE_FEATURE) return;
+        _updateGalaxyInfo();
         buyLivesForZeta();
         updateStats();
         //updateLocationStats();
@@ -162,8 +169,9 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     private ChrominFarmerTmpModule.ChrominFarmerState getChrominFarmerState() {
         if (canStartChrominFarmingModule()) {
-            if (this.collector.hasBoxes()) return ChrominFarmerState.COLLECTING;
-            return ChrominFarmerState.SUICIDING;
+            return this.collector.hasBoxes()
+                    ? ChrominFarmerState.COLLECTING
+                    : ChrominFarmerState.SUICIDING;
         }
         return ChrominFarmerState.WAITING;
     }
@@ -173,16 +181,25 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
         if (gate.getLivesLeft() <= 1 || this.hero.map.id != ZETA_LAST_MAP_ID) return false;
         if (gate == null || this.hero == null || this.npcs == null) return false;
 
+        System.out.println("currentWave: " + gate.getCurrentWave());
+
         if (this.config.ZETA_WAVE == 0 && !(24 <= gate.getCurrentWave())) return false;
         if (this.config.ZETA_WAVE == 1 && !(26 <= gate.getCurrentWave())) return false;
 
         String subwave = Waves.SUB_WAVES.contains(this.config.ZETA_SUB_WAVE) ? config.ZETA_SUB_WAVE : null;
         boolean isInLastWaveButSettingsDontWantLastWave = 26 <= gate.getCurrentWave() && config.ZETA_WAVE == 0;
+
+        System.out.format("1st cond: %s %s %s\n", (subwave == null), subwave.equals("All npcs gone (only devourer left)"), isInLastWaveButSettingsDontWantLastWave);
+
         if (subwave == null || subwave.equals("All npcs gone (only devourer left)") || isInLastWaveButSettingsDontWantLastWave) {
             this.hasSeenLastSubWave = hasSeenLastSubWave ? true :
                     24 <= gate.getCurrentWave() && gate.getCurrentWave() < 26
                     ? this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Infernal"))
                     : this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Kristallin"));
+
+            System.out.println("hasSeenLastSubWave: " + hasSeenLastSubWave);
+            System.out.println("npcsize: " + npcs.size());
+
             return hasSeenLastSubWave && npcs.size() == 1;
         } else {
             boolean canSeeNpc = this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(subwave));
@@ -204,7 +221,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     private void _updateGalaxyInfo() {
-        this.main.backpage.galaxyManager.updateGalaxyInfo(2000);
+        this.main.backpage.galaxyManager.updateGalaxyInfo(500);
     }
 
     private boolean isOnHomeMap() {
@@ -229,7 +246,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     private void updateStats() {
-        updateGalaxyInfo();
+        //updateGalaxyInfo();
 
         if (!isLastStatsInitialized) setStatsStatus("Initializing...");
 
