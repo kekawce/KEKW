@@ -1,5 +1,6 @@
 package eu.darkbot.kekawce.modules.infectiontmpmodule;
 
+import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.entities.Entity;
 import com.github.manolo8.darkbot.core.entities.Mine;
@@ -8,12 +9,12 @@ import com.github.manolo8.darkbot.core.entities.bases.BaseRefinery;
 import com.github.manolo8.darkbot.core.entities.bases.BaseStation;
 import com.github.manolo8.darkbot.core.entities.bases.BaseTurret;
 import com.github.manolo8.darkbot.core.entities.bases.QuestGiver;
-import com.github.manolo8.darkbot.core.itf.*;
+import com.github.manolo8.darkbot.core.itf.Behaviour;
+import com.github.manolo8.darkbot.core.itf.Configurable;
+import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.objects.Map;
-import com.github.manolo8.darkbot.modules.TemporalModule;
-import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.extensions.features.Feature;
-
+import com.github.manolo8.darkbot.modules.TemporalModule;
 import eu.darkbot.kekawce.DefaultInstallable;
 import eu.darkbot.kekawce.Version;
 
@@ -71,7 +72,10 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
     @Override
     public String status() {
         long activeFor = System.currentTimeMillis() - this.activeTime;
-        return "KEKW " + Version.VERSION + (isSafe() ? " | Infecting... | " : " | Not safe aborting infection | ") + activeFor + "ms";
+        return String.format("%s | %s | %sms",
+                Version.fullname(),
+                (isSafe() ? "Infecting..." : "Not safe aborting infection"),
+                activeFor);
     }
 
     @Override

@@ -16,7 +16,6 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
-
 import eu.darkbot.kekawce.DefaultInstallable;
 import eu.darkbot.kekawce.Version;
 
@@ -72,8 +71,9 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public String status() {
-        return "KEKW " + Version.VERSION + " | CargoSeller | Selling | "
-                + Maps.MAPS.get(config.SELL_MAP_INDEX) + " Station";
+        return String.format("%s | Ore Trader | Selling | %s Station",
+                Version.fullname(),
+                Maps.MAPS.get(config.SELL_MAP_INDEX));
     }
 
     @Override

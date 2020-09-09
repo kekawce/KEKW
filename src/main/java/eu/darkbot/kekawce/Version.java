@@ -16,4 +16,8 @@ public class Version {
     public static boolean isLatestVersion() {
         return VERSION.equals(Updater.getLatestVersion());
     }
+
+    public static String fullname() {
+        return "KEKW v" + VERSION;
+    }
 }

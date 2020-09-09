@@ -8,23 +8,18 @@ import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
-import com.github.manolo8.darkbot.core.manager.StarManager;
 import com.github.manolo8.darkbot.core.objects.facades.ChrominProxy;
 import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
-
 import eu.darkbot.kekawce.DefaultInstallable;
 import eu.darkbot.kekawce.Version;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-// FIXME failed to update
-// FIXME incorrect suiciding
-@Feature(name = "Zeta Chromin Farmer alpha 1", description = "suicides on last wave in zeta for more chromin")
+@Feature(name = "Zeta Chromin Farmer", description = "suicides on last wave in zeta for more chromin")
 public class ChrominFarmerTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
     private enum ChrominFarmerState {
@@ -104,8 +99,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     @Override
     public String status() {
         Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
-        return String.format("KEKW %s | Chromin Farmer | %s | %s",
-                Version.VERSION,
+        return String.format("%s | Chromin Farmer | %s | %s",
+                Version.fullname(),
                 this.chrominFarmerState.toString(),
                 (gate.getCurrentWave() >= 26 ? "2nd devourer" : "1st devourer"));
     }
@@ -118,7 +113,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     @Override
     public void tickTask() {
         if (!config.ENABLE_FEATURE) return;
-        _updateGalaxyInfo();
+        this.main.backpage.galaxyManager.updateGalaxyInfo(500);
         buyLivesForZeta();
         updateStats();
         //updateLocationStats();
@@ -205,31 +200,6 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
             boolean canSeeNpc = this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(subwave));
             return canSeeNpc;
         }
-    }
-
-    private void updateGalaxyInfo() {
-        if (isOnHomeMap()) {
-            if (!this.hasBeenUpdated && isZetaPortalOnMap()) {
-                this.hasBeenUpdated = true;
-                _updateGalaxyInfo();
-            }
-            else if (!this.hasBeenUpdatedOnEmptyMap && !isZetaPortalOnMap()) {
-                this.hasBeenUpdatedOnEmptyMap = true;
-                _updateGalaxyInfo();
-            }
-        }
-    }
-
-    private void _updateGalaxyInfo() {
-        this.main.backpage.galaxyManager.updateGalaxyInfo(500);
-    }
-
-    private boolean isOnHomeMap() {
-        return Arrays.stream(StarManager.HOME_MAPS).anyMatch(this.hero.map.name::equals);
-    }
-
-    private boolean isZetaPortalOnMap() {
-        return this.main.mapManager.entities.portals.stream().anyMatch(p -> p.target != null && p.target.id == ZETA_FIRST_MAP_ID);
     }
 
     private void buyLivesForZeta() {

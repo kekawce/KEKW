@@ -2,7 +2,6 @@ package eu.darkbot.kekawce.modules.chromintmpmodule;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyGate;
-import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyInfo;
 import com.github.manolo8.darkbot.utils.http.Method;
 
 public class BuyGalaxyLifeManager {
