@@ -109,8 +109,8 @@ public class ChrominCollector extends CollectorModule {
             moveTowardsBox(current.locationInfo.now);
 
             if (this.hero.locationInfo.distance(current) < 450.0D) {
-                boolean petStuckOnCargo = this.main.statsManager.deposit >= this.main.statsManager.depositTotal
-                        && this.boxes.stream().anyMatch(box -> box.type.equals("FROM_SHIP") || box.type.equals("CANDY_CARGO"));
+                boolean petStuckOnCargo = this.main.statsManager.deposit >= this.main.statsManager.depositTotal &&
+                        this.boxes.stream().anyMatch(box -> box.type.equals("FROM_SHIP") || box.type.equals("CANDY_CARGO"));
                 if (waitingForBoxUntil == -1 || petStuckOnCargo) waitingForBoxUntil = System.currentTimeMillis() + 10_000;
                 else if (System.currentTimeMillis() > waitingForBoxUntil) tryCollectNearestBox();
             } else waitingForBoxUntil = -1;

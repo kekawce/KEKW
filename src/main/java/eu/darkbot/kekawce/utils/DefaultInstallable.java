@@ -5,7 +5,7 @@ import com.github.manolo8.darkbot.Main;
 import java.util.Arrays;
 
 public class DefaultInstallable {
-    private static String VERSION = null;
+    public static String VERSION = null;
 
     public static <T> boolean cantInstall(Main main, T feature) {
         if (!Arrays.equals(VerifierChecker.class.getSigners(), feature.getClass().getSigners()))
