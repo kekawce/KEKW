@@ -3,7 +3,6 @@ package eu.darkbot.kekawce.modules.infectiontmpmodule;
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.core.entities.BasePoint;
 import com.github.manolo8.darkbot.core.entities.Entity;
-import com.github.manolo8.darkbot.core.entities.Mine;
 import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.entities.bases.BaseRefinery;
 import com.github.manolo8.darkbot.core.entities.bases.BaseStation;
@@ -11,52 +10,45 @@ import com.github.manolo8.darkbot.core.entities.bases.BaseTurret;
 import com.github.manolo8.darkbot.core.entities.bases.QuestGiver;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.objects.Map;
+import com.github.manolo8.darkbot.core.objects.slotbars.CategoryBar;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
-import eu.darkbot.kekawce.DefaultInstallable;
-import eu.darkbot.kekawce.Version;
+import eu.darkbot.kekawce.utils.DefaultInstallable;
+import eu.darkbot.kekawce.utils.StatusUtils;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
 
 @Feature(name = "Auto Infection", description = "drops infection mine when you are not infected")
-public class InfectionTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Configurable<InfectionConfig> {
+public class InfectionTmpModule extends TemporalModule implements Behaviour, Configurable<InfectionConfig> {
 
     private static final int INFECT_MINE_ID = 17;
     private static final int INFECT_MINE_EFFECT = 85;
 
     private Main main;
-    private Module mainModule;
     private InfectionConfig config;
 
     private long waitTime;
     private long activeTime;
     private boolean moved;
 
-    private Consumer<Map> onMapChange = (map) -> {
-        this.waitTime = 0;
-    };
+    private final Consumer<Map> onMapChange = (map) -> this.waitTime = 0;
 
     @Override
     public void install(Main main) {
-        if (!DefaultInstallable.Install.install(main, DefaultInstallable.super::install))
-            return;
+        if (DefaultInstallable.cantInstall(main, this)) return;
 
         super.install(main);
         this.main = main;
         this.moved = false;
 
-        if (!(main.module instanceof TemporalModule)) this.mainModule = main.module;
-
-        removeListener();
         main.mapManager.mapChange.add(this.onMapChange);
     }
 
     @Override
     public void uninstall() {
-        this.removeListener();
+        this.main.mapManager.mapChange.remove2(onMapChange);
     }
 
     @Override
@@ -72,16 +64,14 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
     @Override
     public String status() {
         long activeFor = System.currentTimeMillis() - this.activeTime;
-        return String.format("%s | %s | %sms",
-                Version.fullname(),
-                (isSafe() ? "Infecting..." : "Not safe aborting infection"),
-                activeFor);
+        return StatusUtils.status("Auto Infection",
+                (isSafe() ? "Infecting..." : "Not safe aborting infection"), activeFor + "ms");
     }
 
     @Override
     public void tickBehaviour() {
         if (!config.ENABLE_FEATURE) return;
-        if (!canInfect() || System.currentTimeMillis() - this.activeTime < 60_000L) return;
+        if (!canInfect() || System.currentTimeMillis() - this.activeTime < 60_000) return;
 
         if (waitTime == 0) waitTime = System.currentTimeMillis();
         if (this.main.module != this && System.currentTimeMillis() - waitTime > 15_000) {
@@ -104,7 +94,8 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
     }
 
     @Override
-    public void tick() { }
+    public void tick() {
+    }
 
     private void infect() {
 
@@ -119,10 +110,10 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
             Main.API.keyboardClick(this.config.INFECT_KEY);
         }
 
-        Mine infectionMine = this.main.mapManager.entities.mines.stream().filter(m -> m.typeId == INFECT_MINE_ID).findFirst().orElse(null);
-        if (infectionMine != null) {
-            this.main.hero.drive.move(infectionMine);
-        }
+        this.main.mapManager.entities.mines.stream()
+                .filter(m -> m.typeId == INFECT_MINE_ID)
+                .findFirst()
+                .ifPresent(infectionMine -> this.main.hero.drive.move(infectionMine));
     }
 
     private boolean canInfect() {
@@ -130,7 +121,9 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
     }
 
     private boolean canLayMines() {
-        return !this.main.hero.map.gg && !isInDemiZone();
+        return !isInDemiZone() && this.main.facadeManager.slotBars.categoryBar
+                .get(CategoryBar.CategoryType.MINES).items.stream()
+                .anyMatch(item -> item.id.contains("im-01") && item.activatable && item.quantity > 0.0D);
     }
 
     private boolean onWorkingMap() {
@@ -187,12 +180,4 @@ public class InfectionTmpModule extends TemporalModule implements DefaultInstall
         return this.main.mapManager.entities.npcs.size() < this.config.MAX_NPCS_IN_VISION;
     }
 
-    public void removeListener() {
-        this.main.mapManager.mapChange.remove2(onMapChange);
-    }
-
-    @Override
-    protected void goBack() {
-        if (this.mainModule != null) this.main.setModule(this.mainModule);
-    }
 }

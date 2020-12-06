@@ -1,13 +1,15 @@
 {
   "name": "KEKW",
   "author": "ace",
-  "version": "1.5.2",
-  "minVersion": "1.13.17 beta 31",
-  "supportedVersion": "1.13.17 beta 31",
+  "version": "1.6.0 alpha 1",
+  "minVersion": "1.13.17 beta 61",
+  "supportedVersion": "1.13.17 beta 61",
   "features": [
-    "eu.darkbot.kekawce.updater.UpdaterFeature",
     "eu.darkbot.kekawce.modules.chromintmpmodule.ChrominFarmerTmpModule",
     "eu.darkbot.kekawce.modules.infectiontmpmodule.InfectionTmpModule",
     "eu.darkbot.kekawce.modules.tradertmpmodule.OreTraderTmpModule"
-  ]
+  ],
+  "donation": "",
+  "download": "https://cdn.discordapp.com/attachments/351486063946235906/785083049246851102/KEKW.jar",
+  "update": "https://gist.github.com/kekawce/dd496e2dd48fb610ca4bccc3be1f59f3/raw/plugin.json"
 }

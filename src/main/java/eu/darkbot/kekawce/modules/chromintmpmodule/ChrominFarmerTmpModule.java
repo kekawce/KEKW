@@ -5,23 +5,25 @@ import com.github.manolo8.darkbot.backpage.entities.galaxy.Gate;
 import com.github.manolo8.darkbot.core.entities.Npc;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.objects.facades.ChrominProxy;
-import com.github.manolo8.darkbot.core.utils.Lazy;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
-import eu.darkbot.kekawce.DefaultInstallable;
-import eu.darkbot.kekawce.Version;
+import eu.darkbot.kekawce.utils.DefaultInstallable;
+import eu.darkbot.kekawce.utils.StatusUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Feature(name = "Zeta Chromin Farmer", description = "suicides on last wave in zeta for more chromin")
-public class ChrominFarmerTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Task, Configurable<ChrominFarmerConfig> {
+public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
+    private static final Pattern LIVES_PATTERN = Pattern.compile("\\{(\\d+)}");
     private enum ChrominFarmerState {
         COLLECTING,
         SUICIDING,
@@ -38,34 +40,30 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     private double totalAmt = -1.0D, earnedAmt;
 
     static final int ZETA_ID = 6; // id from com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyGate
-    private static final int ZETA_FIRST_MAP_ID = 71; // name: "GG ζ 1", first map in zeta
     private static final int ZETA_LAST_MAP_ID = 73; // name: "GG ζ 3", last map in zeta
 
     private Main main;
     private HeroManager hero;
-    private Module mainModule;
     private ChrominFarmerConfig config;
     private ChrominCollector collector;
     private List<Npc> npcs;
+    private Gate gate;
 
     private BuyGalaxyLifeManager buyLifeManager;
     private int livesBought;
 
-    private boolean hasBeenUpdated;
-    private boolean hasBeenUpdatedOnEmptyMap;
-
     private long lastStatsCheck;
-    //private long lastLocStatsCheck;
     private boolean isLastStatsInitialized;
-    //private boolean isLastLocStatsInitialized;
     private SimpleDateFormat formatter;
 
     private boolean hasSeenLastSubWave;
+    private int currWave = -1;
+    private int currLives = -1;
+    private Consumer<String> livesListener;
 
     @Override
     public void install(Main main) {
-        if (!DefaultInstallable.Install.install(main, DefaultInstallable.super::install))
-            return;
+        if (DefaultInstallable.cantInstall(main, this)) return;
 
         super.install(main);
 
@@ -76,17 +74,19 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
         this.main = main;
         this.hero = main.hero;
         this.npcs = main.mapManager.entities.npcs;
-
-        this.hasBeenUpdated = false;
-        this.hasBeenUpdatedOnEmptyMap = false;
+        this.gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(ZETA_ID);
 
         this.formatter = new SimpleDateFormat("HH:mm:ss");
-
-        if (!(main.module instanceof TemporalModule)) this.mainModule = main.module;
+        this.livesListener = log -> {
+            Matcher m = LIVES_PATTERN.matcher(log);
+            if (m.find()) currLives = Integer.parseInt(m.group(1));
+        };
+        main.facadeManager.log.logs.add(livesListener);
     }
 
     @Override
     public void uninstall() {
+        main.facadeManager.log.logs.remove2(livesListener);
         this.collector.uninstall();
     }
 
@@ -98,11 +98,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
 
     @Override
     public String status() {
-        Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
-        return String.format("%s | Chromin Farmer | %s | %s",
-                Version.fullname(),
-                this.chrominFarmerState.toString(),
-                (gate.getCurrentWave() >= 26 ? "2nd devourer" : "1st devourer"));
+        return StatusUtils.status("Chromin Farmer", chrominFarmerState.toString(),
+                (currWave >= 26 ? "2nd devourer" : "1st devourer"));
     }
 
     @Override
@@ -113,10 +110,9 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     @Override
     public void tickTask() {
         if (!config.ENABLE_FEATURE) return;
-        this.main.backpage.galaxyManager.updateGalaxyInfo(500);
+        this.main.backpage.galaxyManager.updateGalaxyInfos(500);
         buyLivesForZeta();
         updateStats();
-        //updateLocationStats();
     }
 
     @Override
@@ -135,7 +131,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     @Override
-    public void tick() { }
+    public void tick() {
+    }
 
     private void chrominFarmerTick() {
         this.chrominFarmerState = getChrominFarmerState();
@@ -154,9 +151,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
                 this.hero.drive.move(this.npcs.get(0));
                 break;
             case WAITING:
-                this.hasBeenUpdated = false;
                 this.hasSeenLastSubWave = false;
-                this.hasBeenUpdatedOnEmptyMap = false;
                 goBack();
                 break;
         }
@@ -172,43 +167,58 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     private boolean canStartChrominFarmingModule() {
-        Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
-        if (gate.getLivesLeft() <= 1 || this.hero.map.id != ZETA_LAST_MAP_ID) return false;
-        if (gate == null || this.hero == null || this.npcs == null) return false;
+        if (isNotInitialized()) return false;
+        if (currLives == -1) {
+            currLives = gate.getLivesLeft();
+            return false;
+        }
+        if (currLives <= 1 || this.hero.map.id != ZETA_LAST_MAP_ID) return false;
 
-        System.out.println("currentWave: " + gate.getCurrentWave());
-
-        if (this.config.ZETA_WAVE == 0 && !(24 <= gate.getCurrentWave())) return false;
-        if (this.config.ZETA_WAVE == 1 && !(26 <= gate.getCurrentWave())) return false;
+        currWave = getWave();
+        if (currWave == -1) return false;
+        if (config.ZETA_WAVE == 0 && !(24 <= currWave)) return false;
+        if (config.ZETA_WAVE == 1 && !(26 <= currWave)) return false;
 
         String subwave = Waves.SUB_WAVES.contains(this.config.ZETA_SUB_WAVE) ? config.ZETA_SUB_WAVE : null;
-        boolean isInLastWaveButSettingsDontWantLastWave = 26 <= gate.getCurrentWave() && config.ZETA_WAVE == 0;
+        boolean failsafe = 26 <= currWave && config.ZETA_WAVE == 0;
 
-        System.out.format("1st cond: %s %s %s\n", (subwave == null), subwave.equals("All npcs gone (only devourer left)"), isInLastWaveButSettingsDontWantLastWave);
-
-        if (subwave == null || subwave.equals("All npcs gone (only devourer left)") || isInLastWaveButSettingsDontWantLastWave) {
-            this.hasSeenLastSubWave = hasSeenLastSubWave ? true :
-                    24 <= gate.getCurrentWave() && gate.getCurrentWave() < 26
+        if (subwave == null || subwave.equals("All npcs gone (only devourer left)") || failsafe) {
+            this.hasSeenLastSubWave = hasSeenLastSubWave ||
+                    (24 <= currWave && currWave < 26
                     ? this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Infernal"))
-                    : this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Kristallin"));
-
-            System.out.println("hasSeenLastSubWave: " + hasSeenLastSubWave);
-            System.out.println("npcsize: " + npcs.size());
+                    : this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains("Kristallin")));
 
             return hasSeenLastSubWave && npcs.size() == 1;
         } else {
-            boolean canSeeNpc = this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(subwave));
-            return canSeeNpc;
+            return this.npcs.stream().anyMatch(npc -> npc.playerInfo.username.contains(subwave));
         }
     }
 
+    private int getWave() {
+        return npcs.stream()
+                .filter(npc -> npc.playerInfo.username.contains("Devourer"))
+                .findFirst()
+                .map(npc -> {
+                    String name = npc.playerInfo.username;
+                    return Integer.parseInt(name.substring(name.length() - 2));
+                })
+                .orElse(-1);
+    }
+
+    private boolean isNotInitialized() {
+        if (gate != null) return false;
+        gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(ZETA_ID);
+        return true;
+    }
+
     private void buyLivesForZeta() {
-        Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
+        if (isNotInitialized()) return;
         if (gate.getLivesLeft() == -1) return;
 
-        this.livesBought = (int)(Math.log(gate.getLifePrice() / config.FIRST_LIFE_COST) / Math.log(2));
+        this.livesBought = (int)(Math.log((float)gate.getLifePrice() / config.FIRST_LIFE_COST) / Math.log(2));
+        if (livesBought < 0) livesBought = 0;
 
-        if (this.livesBought >= this.config.BUY_LIVES || this.config.BUY_LIVES == 0) return;
+        if (this.livesBought >= this.config.BUY_LIVES) return;
 
         setStatsStatus("Buying Li" + (this.config.BUY_LIVES == 1 ? "fe" : "ves"));
         int numLivesToBuy = this.config.BUY_LIVES - livesBought;
@@ -216,12 +226,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
     }
 
     private void updateStats() {
-        //updateGalaxyInfo();
-
         if (!isLastStatsInitialized) setStatsStatus("Initializing...");
-
-        Gate gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(Integer.valueOf(ZETA_ID));
-        if (gate == null) return;
+        if (isNotInitialized()) return;
 
         if (lastStatsCheck == 0) lastStatsCheck = System.currentTimeMillis();
 
@@ -256,36 +262,8 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
         this.totalAmt = currAmt;
     }
 
-//    private void updateLocationStats() {
-//        if (!this.config.LOCATION_INFO.SHOW_STATS) {
-//            setCurrent("Disabled", this.config.LOCATION_INFO.STATUS_UPDATE);
-//            setCurrent("", this.config.LOCATION_INFO.HERO_POS_UPDATE);
-//            setCurrent("", this.config.LOCATION_INFO.LOCATION_UPDATE);
-//            return;
-//        }
-//        if (!this.isLastLocStatsInitialized) setLocationStatus("Initializing...");
-//
-//        if (lastLocStatsCheck == 0) lastLocStatsCheck = System.currentTimeMillis();
-//        if ((System.currentTimeMillis() - lastLocStatsCheck) > 1_000) { // updates every sec
-//            this.isLastLocStatsInitialized = true;
-//            this.lastLocStatsCheck = 0;
-//
-//            setLocationStatus(this.collector.getNumOfBoxes() + " box(es) seen");
-//            setCurrent("(" + this.hero.locationInfo.now.toString() + ")", this.config.LOCATION_INFO.HERO_POS_UPDATE);
-//            setCurrent(this.collector.toString(), this.config.LOCATION_INFO.LOCATION_UPDATE);
-//        }
-//    }
-//
-//    private synchronized void setLocationStatus(String status) {
-//        this.config.LOCATION_INFO.STATUS_UPDATE.send("[" + this.formatter.format(new Date()) + "] " + status);
-//    }
-
     private synchronized void setStatsStatus(String status) {
         this.config.STATUS_UPDATE.send("[" + this.formatter.format(new Date()) + "] " + status);
-    }
-
-    private synchronized void setCurrent(String current, Lazy<String> toUpdate) {
-        toUpdate.send(current);
     }
 
     private void updateStats(String key, Integer value) {
@@ -295,8 +273,4 @@ public class ChrominFarmerTmpModule extends TemporalModule implements DefaultIns
         }
     }
 
-    @Override
-    protected void goBack() {
-        if (this.mainModule != null) this.main.setModule(this.mainModule);
-    }
 }

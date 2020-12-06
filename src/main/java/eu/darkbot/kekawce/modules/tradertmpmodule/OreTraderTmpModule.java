@@ -6,7 +6,6 @@ import com.github.manolo8.darkbot.core.entities.Portal;
 import com.github.manolo8.darkbot.core.entities.bases.BaseRefinery;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
-import com.github.manolo8.darkbot.core.itf.Module;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.objects.Map;
@@ -16,20 +15,19 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
-import eu.darkbot.kekawce.DefaultInstallable;
-import eu.darkbot.kekawce.Version;
+import eu.darkbot.kekawce.utils.DefaultInstallable;
+import eu.darkbot.kekawce.utils.StatusUtils;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Feature(name = "Ore Trader", description = "When cargo is full travels to base to sell")
-public class OreTraderTmpModule extends TemporalModule implements DefaultInstallable, Behaviour, Configurable<OreTraderConfig> {
+public class OreTraderTmpModule extends TemporalModule implements Behaviour, Configurable<OreTraderConfig> {
 
     private Main main;
     private Drive drive;
     private HeroManager hero;
-    private Module mainModule;
     private StatsManager stats;
     private PortalJumper jumper;
     private Portal ggExitPortal;
@@ -45,8 +43,7 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public void install(Main main) {
-        if (!DefaultInstallable.Install.install(main, DefaultInstallable.super::install))
-            return;
+        if (DefaultInstallable.cantInstall(main, this)) return;
 
         super.install(main);
 
@@ -59,8 +56,6 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
         this.traveler = new MapTraveler(main);
         this.portals = main.mapManager.entities.portals;
         this.bases = main.mapManager.entities.basePoints;
-
-        if (!(main.module instanceof TemporalModule)) this.mainModule = main.module;
     }
 
     @Override
@@ -71,9 +66,7 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
 
     @Override
     public String status() {
-        return String.format("%s | Ore Trader | Selling | %s Station",
-                Version.fullname(),
-                Maps.MAPS.get(config.SELL_MAP_INDEX));
+        return StatusUtils.status("Ore Trader", "Selling", Maps.MAPS.get(config.SELL_MAP_INDEX) + " Station");
     }
 
     @Override
@@ -92,8 +85,7 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
         boolean hasTarget = !(this.hero.target == null || this.hero.target.removed);
         if (hasTarget && this.config.FINISH_TARGET_BEFORE_SELLING) return;
 
-        if (this.stats.deposit >= this.stats.depositTotal && checkGG()
-                && this.main.module != this)
+        if (this.stats.deposit >= this.stats.depositTotal && checkGG() && this.main.module != this)
             main.setModule(this);
     }
 
@@ -119,7 +111,8 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
     }
 
     @Override
-    public void tick() { }
+    public void tick() {
+    }
 
     private void sell() {
         this.hero.setMode(this.config.SELL_CONFIG);
@@ -173,7 +166,7 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
     }
 
     private boolean checkGG() {
-        return this.hero.map.gg && !this.hero.map.name.equals("LoW") ? existsValidPortal() : true;
+        return !this.hero.map.gg || this.hero.map.name.equals("LoW") || existsValidPortal();
     }
 
     private boolean existsValidPortal() {
@@ -184,8 +177,4 @@ public class OreTraderTmpModule extends TemporalModule implements DefaultInstall
         return ggExitPortal != null;
     }
 
-    @Override
-    protected void goBack() {
-        if (this.mainModule != null) this.main.setModule(this.mainModule);
-    }
 }

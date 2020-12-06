@@ -1,4 +1,4 @@
-package eu.darkbot.kekawce;
+package eu.darkbot.kekawce.utils;
 
 import com.github.manolo8.darkbot.utils.AuthAPI;
 

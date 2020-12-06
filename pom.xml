@@ -24,37 +24,54 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.Manolo8</groupId>
+            <groupId>com.github.darkbot-reloaded</groupId>
             <artifactId>DarkBot</artifactId>
-            <!--suppress MavenModelInspection | use -U flag in maven to update-->
-            <version>1.13-SNAPSHOT</version>
+            <version>master-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
     <build>
         <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jarsigner-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>sign</id>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- path to your .keystore file -->
-                    <keystore>${user.home}\.keystore</keystore>
-                    <alias>AceKey</alias>
-                    <storepass>rich5168</storepass>
-                    <keypass>rich5168</keypass>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>pluginBuilder</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <configuration>
+                            <outputDirectory>${alt.build.dir}</outputDirectory>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jarsigner-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- path to your .keystore file -->
+                            <keystore>${env.keystore}</keystore>
+                            <alias>${env.alias}</alias>
+                            <storepass>${env.storepass}</storepass>
+                            <keypass>${env.keypass}</keypass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

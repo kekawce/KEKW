@@ -14,9 +14,15 @@ public class Ores extends OptionList<OreTradeGui.Ore> {
             .map(e -> e.name().toLowerCase()).collect(Collectors.toList());
 
     @Override
-    public OreTradeGui.Ore getValue(String text) { return ORES.get(OPTIONS.indexOf(text)); }
+    public OreTradeGui.Ore getValue(String text) {
+        return ORES.get(OPTIONS.indexOf(text));
+    }
+
     @Override
-    public String getText(OreTradeGui.Ore ore) { return ore.name().toLowerCase(); }
+    public String getText(OreTradeGui.Ore ore) {
+        return ore.name().toLowerCase();
+    }
+
     @Override
     public List<String> getOptions() {
         return OPTIONS;

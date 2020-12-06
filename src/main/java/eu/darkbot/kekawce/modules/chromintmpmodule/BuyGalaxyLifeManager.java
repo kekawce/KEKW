@@ -5,7 +5,7 @@ import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyGate;
 import com.github.manolo8.darkbot.utils.http.Method;
 
 public class BuyGalaxyLifeManager {
-    private Main main;
+    private final Main main;
 
     public BuyGalaxyLifeManager(Main main) {
         this.main = main;
@@ -14,7 +14,7 @@ public class BuyGalaxyLifeManager {
     public void buyLivesForZeta(int numLives) {
         for (int i = 0; i < numLives; i++) {
             buyLifeForZeta();
-            main.backpage.galaxyManager.updateGalaxyInfo(500);
+            main.backpage.galaxyManager.updateGalaxyInfos(500);
         }
     }
 
@@ -27,6 +27,7 @@ public class BuyGalaxyLifeManager {
                     .setRawParam("action", "buyLife")
                     .closeInputStream();
         } catch (Exception e) {
+            System.err.println("Failed to buy life for Zeta");
             e.printStackTrace();
         }
     }

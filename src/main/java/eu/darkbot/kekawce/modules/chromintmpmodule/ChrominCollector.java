@@ -20,19 +20,17 @@ public class ChrominCollector extends CollectorModule {
     private static final String CHROMIN_BOX = "CHROMIN_BOX";
     private final Object lock = new Object();
 
-    private Main main;
-    private HeroManager hero;
-    private ChrominFarmerConfig config;
+    private final Main main;
+    private final HeroManager hero;
+    private final ChrominFarmerConfig config;
 
     private long waitingForBoxUntil;
 
-    private List<Box> boxes;
+    private final List<Box> boxes;
     public List<Box> chrominBoxes;
 
-    private Consumer<Entity> filterBoxes;
-    private Consumer<Map> onMapChange = (map) -> {
-        this.chrominBoxes = new ArrayList();
-    };
+    private final Consumer<Entity> filterBoxes;
+    private final Consumer<Map> onMapChange = (map) -> this.chrominBoxes = new ArrayList<>();
 
     public ChrominCollector(Main main, ChrominFarmerConfig config) {
         super.install(main);
@@ -44,7 +42,7 @@ public class ChrominCollector extends CollectorModule {
 
         this.waitingForBoxUntil = -1;
 
-        this.chrominBoxes = new ArrayList();
+        this.chrominBoxes = new ArrayList<>();
 
         this.filterBoxes = entity -> {
             synchronized (lock) {
@@ -64,13 +62,13 @@ public class ChrominCollector extends CollectorModule {
                                 .findFirst()
                                 .orElse(null);
                         box.setMetadata("BOX_HASH", hash);
+                        //noinspection ResultOfMethodCallIgnored
                         Collections.replaceAll(chrominBoxes, oldBox, box);
                     }
                 }
             }
         };
 
-        removeListener();
         main.mapManager.mapChange.add(this.onMapChange);
     }
 
@@ -78,7 +76,7 @@ public class ChrominCollector extends CollectorModule {
     public void uninstall() {
         super.uninstall();
         this.main.mapManager.entities.entityRegistry.remove(EntityFactory.BOX, filterBoxes);
-        removeListener();
+        this.main.mapManager.mapChange.remove2(onMapChange);
     }
 
     @Override
@@ -127,29 +125,21 @@ public class ChrominCollector extends CollectorModule {
     @Override
     public String toString() {
         sortBoxesByClosestDistance();
-        String locInfo = "";
+        StringBuilder locInfo = new StringBuilder();
 
         for (final Box box : chrominBoxes)
-            locInfo += "(" + box.locationInfo.now.toString() + ") | ";
+            locInfo.append("(").append(box.locationInfo.now.toString()).append(") | ");
 
-        return locInfo;
+        return locInfo.toString();
     }
 
     private void sortBoxesByClosestDistance() {
-        chrominBoxes.sort(new Comparator<Box>() {
-            @Override
-            public int compare(Box b1, Box b2) {
-                double distToB1 = hero.locationInfo.distance(b1);
-                double distToB2 = hero.locationInfo.distance(b2);
+        chrominBoxes.sort((b1, b2) -> {
+            double distToB1 = hero.locationInfo.distance(b1);
+            double distToB2 = hero.locationInfo.distance(b2);
 
-                return distToB1 == distToB2 ? 0 : distToB1 < distToB2 ? -1 : 1;
-            }
+            return Double.compare(distToB1, distToB2);
         });
     }
 
-    public int getNumOfBoxes() { return chrominBoxes.size(); }
-
-    public void removeListener() {
-        this.main.mapManager.mapChange.remove2(onMapChange);
-    }
 }

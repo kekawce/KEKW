@@ -8,12 +8,17 @@ import java.util.List;
 public class Maps extends OptionList<Integer> {
     public static final List<String> MAPS = Arrays.asList("1-1", "2-1", "3-1", "5-2", "1-8", "2-8", "3-8", "LoW");
 
+    @Override
     public Integer getValue(String text) {
         return MAPS.indexOf(text);
     }
+
+    @Override
     public String getText(Integer value) {
         return MAPS.get(value);
     }
+
+    @Override
     public List<String> getOptions() {
         return MAPS;
     }
