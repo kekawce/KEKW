@@ -44,6 +44,26 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jarsigner-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- path to your .keystore file -->
+                            <keystore>${env.keystore}</keystore>
+                            <alias>${env.alias}</alias>
+                            <storepass>${env.storepass}</storepass>
+                            <keypass>${env.keypass}</keypass>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
                         <version>3.2.0</version>
                         <configuration>
@@ -68,26 +88,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jarsigner-plugin</artifactId>
-                        <version>3.0.0</version>
-                        <executions>
-                            <execution>
-                                <id>sign</id>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <!-- path to your .keystore file -->
-                            <keystore>${env.keystore}</keystore>
-                            <alias>${env.alias}</alias>
-                            <storepass>${env.storepass}</storepass>
-                            <keypass>${env.keypass}</keypass>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
