@@ -1,7 +1,7 @@
 {
   "name": "KEKW",
   "author": "ace",
-  "version": "1.6.0 alpha 2",
+  "version": "1.6.0 alpha 3",
   "minVersion": "1.13.17 beta 61",
   "supportedVersion": "1.13.17 beta 61",
   "features": [
@@ -9,6 +9,6 @@
     "eu.darkbot.kekawce.modules.infectiontmpmodule.InfectionTmpModule",
     "eu.darkbot.kekawce.modules.tradertmpmodule.OreTraderTmpModule"
   ],
-  "download": "https://cdn.discordapp.com/attachments/351486063946235906/785083049246851102/KEKW.jar",
+  "download": "https://RANDOM_LINK",
   "update": "https://gist.github.com/kekawce/dd496e2dd48fb610ca4bccc3be1f59f3/raw/plugin.json"
 }

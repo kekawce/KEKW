@@ -2,6 +2,7 @@ package eu.darkbot.kekawce.modules.chromintmpmodule;
 
 import com.github.manolo8.darkbot.Main;
 import com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyGate;
+import com.github.manolo8.darkbot.utils.Time;
 import com.github.manolo8.darkbot.utils.http.Method;
 
 public class BuyGalaxyLifeManager {
@@ -20,7 +21,7 @@ public class BuyGalaxyLifeManager {
 
     private void buyLifeForZeta() {
         try {
-            main.backpage.getConnection("flashinput/galaxyGates.php", Method.GET, 1000)
+            main.backpage.getConnection("flashinput/galaxyGates.php", Method.GET, Time.SECOND)
                     .setRawParam("userID", main.hero.id)
                     .setRawParam("sid", main.statsManager.sid)
                     .setRawParam("gateID", GalaxyGate.ZETA.getId())

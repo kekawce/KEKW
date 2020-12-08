@@ -15,6 +15,7 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
+import com.github.manolo8.darkbot.utils.Time;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
@@ -23,7 +24,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Feature(name = "Ore Trader", description = "When cargo is full travels to base to sell")
-public class OreTraderTmpModule extends TemporalModule implements Behaviour, Configurable<OreTraderConfig> {
+public class OreTraderTmpModule extends TemporalModule
+        implements Behaviour, Configurable<OreTraderConfig> {
 
     private Main main;
     private Drive drive;
@@ -92,7 +94,9 @@ public class OreTraderTmpModule extends TemporalModule implements Behaviour, Con
     @Override
     public void tickModule() {
         // to prevent bug where bot will get stuck in GG due to jumping into wrong portal (most likely due to some client/server de-sync)
-        if (this.hero.map.gg && !this.hero.map.name.equals("LoW") && this.ggExitPortal == null) goBack();
+        boolean stuckInGG = this.hero.map.gg && !this.hero.map.name.equals("LoW") && this.ggExitPortal == null;
+        boolean cargoNotFull = this.stats.deposit < this.stats.depositTotal - 100;
+        if (stuckInGG || cargoNotFull) goBack();
 
         sell();
 
@@ -131,7 +135,7 @@ public class OreTraderTmpModule extends TemporalModule implements Behaviour, Con
             this.bases.stream().filter(b -> b instanceof BaseRefinery).findFirst()
                     .ifPresent((b) -> {
                         if (b.locationInfo.distance(this.hero) > 200.0D ||
-                                (System.currentTimeMillis() - sellTime > 5000 && sellTime != 0)) { // trade btn not appearing
+                                (System.currentTimeMillis() - sellTime > 5 * Time.SECOND && sellTime != 0)) { // trade btn not appearing
                             this.drive.move(b.locationInfo.now.x + ThreadLocalRandom.current().nextDouble(50.),
                                     b.locationInfo.now.y + ThreadLocalRandom.current().nextDouble(50.));
                             this.sellTime = 0;

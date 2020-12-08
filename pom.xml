@@ -36,7 +36,7 @@
 
     <profiles>
         <profile>
-            <id>pluginBuilder</id>
+            <id>plugin-builder</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -49,6 +49,25 @@
                         <configuration>
                             <outputDirectory>${alt.build.dir}</outputDirectory>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <configuration>
+                                    <target>
+                                        <copy file="${alt.build.dir}/${project.build.finalName}.jar"
+                                              todir="${kekw.build.dir}" />
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

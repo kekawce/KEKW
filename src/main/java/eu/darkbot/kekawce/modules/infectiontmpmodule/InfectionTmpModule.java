@@ -14,6 +14,7 @@ import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.slotbars.CategoryBar;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
+import com.github.manolo8.darkbot.utils.Time;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
@@ -21,7 +22,8 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 
 @Feature(name = "Auto Infection", description = "drops infection mine when you are not infected")
-public class InfectionTmpModule extends TemporalModule implements Behaviour, Configurable<InfectionConfig> {
+public class InfectionTmpModule extends TemporalModule
+        implements Behaviour, Configurable<InfectionConfig> {
 
     private static final int INFECT_MINE_ID = 17;
     private static final int INFECT_MINE_EFFECT = 85;
@@ -71,10 +73,10 @@ public class InfectionTmpModule extends TemporalModule implements Behaviour, Con
     @Override
     public void tickBehaviour() {
         if (!config.ENABLE_FEATURE) return;
-        if (!canInfect() || System.currentTimeMillis() - this.activeTime < 60_000) return;
+        if (!canInfect() || System.currentTimeMillis() - this.activeTime < 60 * Time.SECOND) return;
 
         if (waitTime == 0) waitTime = System.currentTimeMillis();
-        if (this.main.module != this && System.currentTimeMillis() - waitTime > 15_000) {
+        if (this.main.module != this && System.currentTimeMillis() - waitTime > 15 * Time.SECOND) {
             this.activeTime = 0;
             main.setModule(this);
         }
@@ -87,7 +89,7 @@ public class InfectionTmpModule extends TemporalModule implements Behaviour, Con
         infect();
 
         if (isInfected() || isUnderAttack() || !isSafe()
-                || System.currentTimeMillis() - activeTime > 30_000L) {
+                || System.currentTimeMillis() - activeTime > 30 * Time.SECOND) {
             this.moved = false;
             goBack();
         }

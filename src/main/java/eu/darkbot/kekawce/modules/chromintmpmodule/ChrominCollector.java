@@ -8,6 +8,7 @@ import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.core.utils.factory.EntityFactory;
 import com.github.manolo8.darkbot.modules.CollectorModule;
+import com.github.manolo8.darkbot.utils.Time;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,7 +112,7 @@ public class ChrominCollector extends CollectorModule {
             if (this.hero.locationInfo.distance(current) < 450.0D) {
                 boolean petStuckOnCargo = this.main.statsManager.deposit >= this.main.statsManager.depositTotal &&
                         this.boxes.stream().anyMatch(box -> box.type.equals("FROM_SHIP") || box.type.equals("CANDY_CARGO"));
-                if (waitingForBoxUntil == -1 || petStuckOnCargo) waitingForBoxUntil = System.currentTimeMillis() + 10_000;
+                if (waitingForBoxUntil == -1 || petStuckOnCargo) waitingForBoxUntil = System.currentTimeMillis() + 10 * Time.SECOND;
                 else if (System.currentTimeMillis() > waitingForBoxUntil) tryCollectNearestBox();
             } else waitingForBoxUntil = -1;
         } else tryCollectNearestBox();

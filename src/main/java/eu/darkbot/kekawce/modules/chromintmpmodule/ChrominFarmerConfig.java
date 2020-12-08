@@ -48,6 +48,9 @@ public class ChrominFarmerConfig {
     @Num(min = 1, max = 5000, step = 50)
     public int FIRST_LIFE_COST = 5000;
 
+    @Option(value = "Suicide in radiation zone", description = "bot will suicide in radiation zone")
+    public boolean SUICIDE_IN_RAD_ZONE = false;
+
     @Option(value = "Suicides on this wave", description = "bot will suicide either on the 1st or 2nd devourer wave")
     @Editor(JListField.class)
     @Options(Waves.class)

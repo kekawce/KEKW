@@ -7,9 +7,12 @@ import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.itf.Task;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.manager.MapManager;
 import com.github.manolo8.darkbot.core.objects.facades.ChrominProxy;
+import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
+import com.github.manolo8.darkbot.utils.Time;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
@@ -21,7 +24,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Feature(name = "Zeta Chromin Farmer", description = "suicides on last wave in zeta for more chromin")
-public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour, Task, Configurable<ChrominFarmerConfig> {
+public class ChrominFarmerTmpModule extends TemporalModule
+        implements Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
     private static final Pattern LIVES_PATTERN = Pattern.compile("\\{(\\d+)}");
     private enum ChrominFarmerState {
@@ -56,6 +60,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour,
     private boolean isLastStatsInitialized;
     private SimpleDateFormat formatter;
 
+    private boolean canSuicideInRadZone;
     private boolean hasSeenLastSubWave;
     private int currWave = -1;
     private int currLives = -1;
@@ -148,13 +153,36 @@ public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour,
                 if (this.hero.target != null && this.hero.isAttacking(hero.target))
                     Main.API.keyboardClick(this.config.COLLECTOR.AMMO_KEY);
                 this.hero.setMode(this.config.COLLECTOR.SUICIDE_CONFIG);
-                this.hero.drive.move(this.npcs.get(0));
+
+                Npc devourer = npcs.stream()
+                        .filter(npc -> npc.playerInfo.username.contains("Devourer"))
+                        .findFirst().orElseGet(() -> npcs.get(0));
+                if (!canSuicideInRadZone) canSuicideInRadZone = config.SUICIDE_IN_RAD_ZONE || devourerIsBugged(devourer);
+                if (canSuicideInRadZone) hero.drive.clickCenter(true, getClosestRadZone());
+                else hero.drive.move(devourer);
                 break;
             case WAITING:
-                this.hasSeenLastSubWave = false;
+                hasSeenLastSubWave = canSuicideInRadZone = false;
                 goBack();
                 break;
         }
+    }
+
+    private boolean devourerIsBugged(Npc devourer) {
+        return hero.locationInfo.distance(devourer) < 200.0D && !hero.health.hpDecreasedIn(Time.MINUTE);
+    }
+
+    private Location getClosestRadZone() {
+        double width = MapManager.internalWidth, height = MapManager.internalHeight;
+        Location currLoc = hero.locationInfo.now;
+        double percentX = currLoc.x / width, percentY = currLoc.y / height;
+
+        if (Math.abs(percentX - 0.5) > Math.abs(percentY - 0.5)) {
+            int sign = percentX < 0.5 ? -1 : 1;
+            return new Location(currLoc.x + sign * 100, currLoc.y);
+        }
+        int sign = percentY < 0.5 ? -1 : 1;
+        return new Location(currLoc.x, currLoc.y + sign * 100);
     }
 
     private ChrominFarmerTmpModule.ChrominFarmerState getChrominFarmerState() {
@@ -231,7 +259,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour,
 
         if (lastStatsCheck == 0) lastStatsCheck = System.currentTimeMillis();
 
-        if ((System.currentTimeMillis() - lastStatsCheck) > 1_000) {
+        if ((System.currentTimeMillis() - lastStatsCheck) > Time.SECOND) {
             this.isLastStatsInitialized = true;
             this.lastStatsCheck = 0;
 
@@ -246,7 +274,7 @@ public class ChrominFarmerTmpModule extends TemporalModule implements Behaviour,
 
             updateStats("Total Chromin", (int)(this.totalAmt));
             updateStats("Chromin Gained", (int)(this.earnedAmt));
-            updateStats("Chromin Per Hr", (int)(this.earnedAmt / (main.statsManager.runningTime() / 3_600_000.0D)));
+            updateStats("Chromin Per Hr", (int)(this.earnedAmt / (main.statsManager.runningTime() / (double)Time.HOUR)));
         }
     }
 
