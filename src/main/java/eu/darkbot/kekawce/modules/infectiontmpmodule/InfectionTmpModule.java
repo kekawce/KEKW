@@ -123,9 +123,10 @@ public class InfectionTmpModule extends TemporalModule
     }
 
     private boolean canLayMines() {
-        return !isInDemiZone() && this.main.facadeManager.slotBars.categoryBar
-                .get(CategoryBar.CategoryType.MINES).items.stream()
-                .anyMatch(item -> item.id.contains("im-01") && item.activatable && item.quantity > 0.0D);
+        return !isInDemiZone() && main.facadeManager.slotBars.categoryBar
+                .findItemById("ammunition_mine_im-01")
+                .filter(item -> item.activatable && item.quantity > 0)
+                .isPresent();
     }
 
     private boolean onWorkingMap() {
