@@ -10,6 +10,7 @@ import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
 import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
+import com.github.manolo8.darkbot.core.objects.RefinementGui;
 import com.github.manolo8.darkbot.core.utils.Drive;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
@@ -20,7 +21,9 @@ import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Feature(name = "Ore Trader", description = "When cargo is full travels to base to sell")
@@ -34,14 +37,16 @@ public class OreTraderTmpModule extends TemporalModule
     private PortalJumper jumper;
     private Portal ggExitPortal;
     private OreTradeGui oreTrade;
+    private RefinementGui refinement;
     private MapTraveler traveler;
     private List<Portal> portals;
     private List<BasePoint> bases;
 
     private OreTraderConfig config;
 
-    private long sellTime, sellClick;
-    private boolean isDoneSelling = false;
+    private Iterator<OreTradeGui.Ore> ores;
+    private long sellTime, sellUntil;
+    private boolean hasAttemptedToSell;
 
     @Override
     public void install(Main main) {
@@ -55,6 +60,7 @@ public class OreTraderTmpModule extends TemporalModule
         this.stats = main.statsManager;
         this.jumper = new PortalJumper(main.hero);
         this.oreTrade = main.guiManager.oreTrade;
+        this.refinement = main.guiManager.refinement;
         this.traveler = new MapTraveler(main);
         this.portals = main.mapManager.entities.portals;
         this.bases = main.mapManager.entities.basePoints;
@@ -91,37 +97,51 @@ public class OreTraderTmpModule extends TemporalModule
             main.setModule(this);
     }
 
+    //todoo remove all .0D refacter, simplify complex lambdas
     @Override
     public void tickModule() {
-        // to prevent bug where bot will get stuck in GG due to jumping into wrong portal (most likely due to some client/server de-sync)
-        boolean stuckInGG = this.hero.map.gg && !this.hero.map.name.equals("LoW") && this.ggExitPortal == null;
-        boolean cargoNotFull = this.stats.deposit < this.stats.depositTotal - 100;
-        if (stuckInGG || cargoNotFull) goBack();
+        if (shouldGoBackEarly()) goBack();
 
-        sell();
+        sellTick();
 
-        if (isDoneSelling) {
-            if (this.oreTrade.visible) {
-                this.sellTime = 0;
-                this.sellClick = 0;
-                this.oreTrade.showTrade(false, null);
-            }
-            else {
-                this.ggExitPortal = null;
-                this.isDoneSelling = false;
-                goBack();
-            }
+        if (!areSelectedResourcesSold()) return;
+        if (oreTrade.visible) {
+            sellTime = 0;
+            oreTrade.showTrade(false, null);
         }
+        else goBack();
     }
 
     @Override
     public void tick() {
     }
 
-    private void sell() {
+    @Override
+    protected void goBack() {
+        ores = null;
+        ggExitPortal = null;
+
+        super.goBack();
+    }
+
+    private boolean shouldGoBackEarly() {
+        return !hasAttemptedToSell && (cargoHasDecreased() || isStuckInGG());
+    }
+
+    // to prevent special cases such as auto-refining/upgrading where resources will be used up
+    private boolean cargoHasDecreased() {
+        return stats.deposit < stats.depositTotal - 100;
+    }
+
+    // to prevent bug where bot will get stuck in GG due to jumping into wrong portal (most likely due to some client/server de-sync)
+    private boolean isStuckInGG() {
+        return hero.map.gg && !hero.map.name.equals("LoW") && ggExitPortal == null;
+    }
+
+    private void sellTick() {
         this.hero.setMode(this.config.SELL_CONFIG);
 
-        if (this.hero.map.gg && !this.hero.map.name.equals("LoW") && this.ggExitPortal != null) {
+        if (this.hero.map.gg && this.ggExitPortal != null) {
             exitGG();
             return;
         }
@@ -132,32 +152,46 @@ public class OreTraderTmpModule extends TemporalModule
             this.traveler.tick();
         }
         else {
-            this.bases.stream().filter(b -> b instanceof BaseRefinery).findFirst()
-                    .ifPresent((b) -> {
-                        if (b.locationInfo.distance(this.hero) > 200.0D ||
-                                (System.currentTimeMillis() - sellTime > 5 * Time.SECOND && sellTime != 0)) { // trade btn not appearing
-                            this.drive.move(b.locationInfo.now.x + ThreadLocalRandom.current().nextDouble(50.),
-                                    b.locationInfo.now.y + ThreadLocalRandom.current().nextDouble(50.));
-                            this.sellTime = 0;
-                        } else {
-                            if (this.sellTime == 0) this.sellTime = System.currentTimeMillis();
-                            if (!this.isDoneSelling && this.oreTrade.showTrade(true, b)) {
-                                if (this.sellClick == 0) this.sellClick = System.currentTimeMillis();
-                                if (System.currentTimeMillis() - sellClick < config.ADVANCED.SELL_WAIT) return;
-
-                                for (OreTradeGui.Ore ore : config.TOGGLE) {
-                                    this.oreTrade.sellOre(ore);
-                                    try {
-                                        Thread.sleep(config.ADVANCED.SELL_DELAY);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                isDoneSelling = true;
-                            }
-                        }
-                    });
+            this.bases.stream()
+                    .filter(b -> b instanceof BaseRefinery)
+                    .findFirst()
+                    .ifPresent(this::travelToBaseAndSell);
         }
+    }
+
+    private void travelToBaseAndSell(BasePoint b) {
+        if (b.locationInfo.distance(this.hero) > 200D ||
+                (System.currentTimeMillis() - sellTime > 5 * Time.SECOND && sellTime != 0)) { // trade btn not appearing
+            this.drive.move(b.locationInfo.now.x + ThreadLocalRandom.current().nextDouble(50D),
+                    b.locationInfo.now.y + ThreadLocalRandom.current().nextDouble(50D));
+            this.sellTime = 0;
+        } else {
+            if (this.sellTime == 0) this.sellTime = System.currentTimeMillis();
+            if (oreTrade.showTrade(true, b)) {
+                ores = config.ORES_TO_SELL.iterator();
+                sellUntil = System.currentTimeMillis() + config.ADVANCED.SELL_WAIT;
+            }
+
+            if (sellUntil <= System.currentTimeMillis()) sellOres();
+        }
+    }
+
+    private void sellOres() {
+        if (sellUntil > System.currentTimeMillis()) return;
+        sellUntil = System.currentTimeMillis() + config.ADVANCED.SELL_DELAY;
+
+        if (ores.hasNext()) oreTrade.sellOre(ores.next());
+        hasAttemptedToSell = true;
+    }
+
+    private boolean areSelectedResourcesSold() {
+        return config.ORES_TO_SELL.stream()
+                .filter(Objects::nonNull)
+                .map(Enum::name)
+                .map(RefinementGui.OreType::valueOf)
+                .allMatch(ore -> ore == RefinementGui.OreType.PALLADIUM
+                        ? refinement.get(ore).getAmount() < 15
+                        : refinement.get(ore).getAmount() <= 0);
     }
 
     private void exitGG() {
@@ -170,12 +204,13 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private boolean checkGG() {
-        return !this.hero.map.gg || this.hero.map.name.equals("LoW") || existsValidPortal();
+        return !hero.map.gg || (config.SELL_MAP_INDEX == Maps.MAPS.indexOf("LoW") && hero.map.name.equals("LoW")) || existsValidPortal();
     }
 
     private boolean existsValidPortal() {
         ggExitPortal = portals.stream()
-                .filter(p -> !(p.target != null && p.target.gg))
+                .filter(Objects::nonNull)
+                .filter(p -> !p.target.gg)
                 .min(Comparator.comparingDouble(p -> p.locationInfo.distance(main.hero)))
                 .orElse(null);
         return ggExitPortal != null;

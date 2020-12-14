@@ -31,16 +31,7 @@ public class OreTraderConfig {
     @Option(value = "Resources to sell", description = "will only sell these selected resources")
     @Editor(JCheckboxListField.class)
     @Options(Ores.class)
-    public Set<OreTradeGui.Ore> TOGGLE = EnumSet.of(
-            OreTradeGui.Ore.PROMETIUM,
-            OreTradeGui.Ore.ENDRIUM,
-            OreTradeGui.Ore.TERBIUM,
-            OreTradeGui.Ore.PROMETID,
-            OreTradeGui.Ore.DURANIUM,
-            OreTradeGui.Ore.PROMERIUM,
-            OreTradeGui.Ore.SEPROM,
-            OreTradeGui.Ore.PALLADIUM,
-            OreTradeGui.Ore.OSMIUM);
+    public Set<OreTradeGui.Ore> ORES_TO_SELL = EnumSet.allOf(OreTradeGui.Ore.class);
 
     @Option(value = "Advanced", description = "You can ignore this if you have no issues")
     public Advanced ADVANCED = new Advanced();
