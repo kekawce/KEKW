@@ -28,6 +28,8 @@ public class ChrominFarmerTmpModule extends TemporalModule
         implements Behaviour, Task, Configurable<ChrominFarmerConfig> {
 
     private static final Pattern LIVES_PATTERN = Pattern.compile("\\{(\\d+)}");
+    private final Consumer<String> livesListener = this::onLogReceived;
+
     private enum ChrominFarmerState {
         COLLECTING,
         SUICIDING,
@@ -41,7 +43,7 @@ public class ChrominFarmerTmpModule extends TemporalModule
     private ChrominFarmerTmpModule.ChrominFarmerState chrominFarmerState;
 
     private ChrominProxy chrominEvent;
-    private double totalAmt = -1.0D, earnedAmt;
+    private double totalAmt = -1D, earnedAmt;
 
     static final int ZETA_ID = 6; // id from com.github.manolo8.darkbot.backpage.entities.galaxy.GalaxyGate
     private static final int ZETA_LAST_MAP_ID = 73; // name: "GG ζ 3", last map in zeta
@@ -64,7 +66,6 @@ public class ChrominFarmerTmpModule extends TemporalModule
     private boolean hasSeenLastSubWave;
     private int currWave = -1;
     private int currLives = -1;
-    private Consumer<String> livesListener;
 
     @Override
     public void install(Main main) {
@@ -82,10 +83,6 @@ public class ChrominFarmerTmpModule extends TemporalModule
         this.gate = main.backpage.galaxyManager.getGalaxyInfo().getGate(ZETA_ID);
 
         this.formatter = new SimpleDateFormat("HH:mm:ss");
-        this.livesListener = log -> {
-            Matcher m = LIVES_PATTERN.matcher(log);
-            if (m.find()) currLives = Integer.parseInt(m.group(1));
-        };
         main.facadeManager.log.logs.add(livesListener);
     }
 
@@ -93,6 +90,11 @@ public class ChrominFarmerTmpModule extends TemporalModule
     public void uninstall() {
         main.facadeManager.log.logs.remove2(livesListener);
         this.collector.uninstall();
+    }
+
+    private void onLogReceived(String log) {
+        Matcher m = LIVES_PATTERN.matcher(log);
+        if (m.find()) currLives = Integer.parseInt(m.group(1));
     }
 
     @Override
@@ -169,7 +171,7 @@ public class ChrominFarmerTmpModule extends TemporalModule
     }
 
     private boolean devourerIsBugged(Npc devourer) {
-        return hero.locationInfo.distance(devourer) < 200.0D && !hero.health.hpDecreasedIn(Time.MINUTE);
+        return hero.locationInfo.distance(devourer) < 200D && !hero.health.hpDecreasedIn(Time.MINUTE);
     }
 
     private Location getClosestRadZone() {
@@ -279,14 +281,14 @@ public class ChrominFarmerTmpModule extends TemporalModule
     }
 
     public void updateChromin(double currAmt) {
-        if (this.totalAmt == -1.0D) {
+        if (this.totalAmt == -1D) {
             this.totalAmt = currAmt;
             return;
         }
-        if (currAmt <= 0.0D) return;
+        if (currAmt <= 0) return;
 
         double diff = currAmt - this.totalAmt;
-        if (diff > 0.0D) earnedAmt += diff;
+        if (diff > 0) earnedAmt += diff;
         this.totalAmt = currAmt;
     }
 
@@ -295,7 +297,7 @@ public class ChrominFarmerTmpModule extends TemporalModule
     }
 
     private void updateStats(String key, Integer value) {
-        synchronized (this.config.lock) {
+        synchronized (config.lock) {
             this.config.STATS_INFO.put(key, value);
             this.config.STATS_INFO_UPDATE.send(key);
         }

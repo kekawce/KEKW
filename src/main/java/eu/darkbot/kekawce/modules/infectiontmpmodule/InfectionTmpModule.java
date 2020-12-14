@@ -11,7 +11,6 @@ import com.github.manolo8.darkbot.core.entities.bases.QuestGiver;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.objects.Map;
-import com.github.manolo8.darkbot.core.objects.slotbars.CategoryBar;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.utils.Time;
@@ -35,7 +34,7 @@ public class InfectionTmpModule extends TemporalModule
     private long activeTime;
     private boolean moved;
 
-    private final Consumer<Map> onMapChange = (map) -> this.waitTime = 0;
+    private final Consumer<Map> onMapChange = map -> this.waitTime = 0;
 
     @Override
     public void install(Main main) {
@@ -45,7 +44,7 @@ public class InfectionTmpModule extends TemporalModule
         this.main = main;
         this.moved = false;
 
-        main.mapManager.mapChange.add(this.onMapChange);
+        main.mapManager.mapChange.add(onMapChange);
     }
 
     @Override

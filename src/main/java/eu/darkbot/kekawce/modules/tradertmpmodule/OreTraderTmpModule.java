@@ -97,7 +97,6 @@ public class OreTraderTmpModule extends TemporalModule
             main.setModule(this);
     }
 
-    //todoo remove all .0D refacter, simplify complex lambdas
     @Override
     public void tickModule() {
         if (shouldGoBackEarly()) goBack();
@@ -195,7 +194,7 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private void exitGG() {
-        if (this.ggExitPortal.locationInfo.distance(main.hero) > 150.0D) {
+        if (this.ggExitPortal.locationInfo.distance(main.hero) > 150D) {
             this.hero.drive.move(ggExitPortal);
             return;
         }

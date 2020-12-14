@@ -30,8 +30,8 @@ public class ChrominCollector extends CollectorModule {
     private final List<Box> boxes;
     public List<Box> chrominBoxes;
 
-    private final Consumer<Entity> filterBoxes;
-    private final Consumer<Map> onMapChange = (map) -> this.chrominBoxes = new ArrayList<>();
+    private final Consumer<Entity> filterBoxes = this::onEntityReceived;
+    private final Consumer<Map> onMapChange = map -> this.chrominBoxes = new ArrayList<>();
 
     public ChrominCollector(Main main, ChrominFarmerConfig config) {
         super.install(main);
@@ -42,35 +42,9 @@ public class ChrominCollector extends CollectorModule {
         this.config = config;
 
         this.waitingForBoxUntil = -1;
-
         this.chrominBoxes = new ArrayList<>();
 
-        this.filterBoxes = entity -> {
-            synchronized (lock) {
-                Box box = (Box) entity;
-
-                if (box.type.contains(CHROMIN_BOX)) {
-                    String hash = Main.API.readMemoryString(box.address, 160);
-
-                    if (chrominBoxes.stream().noneMatch(cbox -> cbox.getMetadata("BOX_HASH").equals(hash))) {
-                        box.setMetadata("BOX_HASH", hash);
-                        chrominBoxes.add(box);
-                    } else { // anyMatch(), there is match/duplicate box found
-                        // replace old box with new box to reset removed variable value or else it will always be true when
-                        // the box becomes out of sight
-                        Box oldBox = chrominBoxes.stream()
-                                .filter(cbox -> cbox.getMetadata("BOX_HASH").equals(hash))
-                                .findFirst()
-                                .orElse(null);
-                        box.setMetadata("BOX_HASH", hash);
-                        //noinspection ResultOfMethodCallIgnored
-                        Collections.replaceAll(chrominBoxes, oldBox, box);
-                    }
-                }
-            }
-        };
-
-        main.mapManager.mapChange.add(this.onMapChange);
+        main.mapManager.mapChange.add(onMapChange);
     }
 
     @Override
@@ -80,10 +54,35 @@ public class ChrominCollector extends CollectorModule {
         this.main.mapManager.mapChange.remove2(onMapChange);
     }
 
+    private void onEntityReceived(Entity entity) {
+        synchronized (lock) {
+            Box box = (Box) entity;
+
+            if (box.type.contains(CHROMIN_BOX)) {
+                String hash = Main.API.readMemoryString(box.address, 160);
+
+                if (chrominBoxes.stream().noneMatch(cbox -> cbox.getMetadata("BOX_HASH").equals(hash))) {
+                    box.setMetadata("BOX_HASH", hash);
+                    chrominBoxes.add(box);
+                } else { // anyMatch(), there is match/duplicate box found
+                    // replace old box with new box to reset removed variable value or else it will always be true when
+                    // the box becomes out of sight
+                    Box oldBox = chrominBoxes.stream()
+                            .filter(cbox -> cbox.getMetadata("BOX_HASH").equals(hash))
+                            .findFirst()
+                            .orElse(null);
+                    box.setMetadata("BOX_HASH", hash);
+                    //noinspection ResultOfMethodCallIgnored
+                    Collections.replaceAll(chrominBoxes, oldBox, box);
+                }
+            }
+        }
+    }
+
     @Override
     public void tick() {
         synchronized (lock) {
-            this.chrominBoxes.removeIf(box -> this.hero.locationInfo.distance(box) < 700.0D && box.removed);
+            this.chrominBoxes.removeIf(box -> this.hero.locationInfo.distance(box) < 700D && box.removed);
         }
         this.main.mapManager.entities.entityRegistry.add(EntityFactory.BOX, filterBoxes);
     }
@@ -109,7 +108,7 @@ public class ChrominCollector extends CollectorModule {
         if (config.COLLECTOR.PET_BOX_COLLECTING_ONLY && current.type.contains(CHROMIN_BOX)) {
             moveTowardsBox(current.locationInfo.now);
 
-            if (this.hero.locationInfo.distance(current) < 450.0D) {
+            if (this.hero.locationInfo.distance(current) < 450D) {
                 boolean petStuckOnCargo = this.main.statsManager.deposit >= this.main.statsManager.depositTotal &&
                         this.boxes.stream().anyMatch(box -> box.type.equals("FROM_SHIP") || box.type.equals("CANDY_CARGO"));
                 if (waitingForBoxUntil == -1 || petStuckOnCargo) waitingForBoxUntil = System.currentTimeMillis() + 10 * Time.SECOND;

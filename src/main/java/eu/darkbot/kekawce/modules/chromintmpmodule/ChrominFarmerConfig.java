@@ -92,7 +92,11 @@ public class ChrominFarmerConfig {
         private final JLabel statusField;
         private final Map<String, JLabel> statsInfo = new LinkedHashMap<>();
 
+        private final ChrominFarmerConfig config;
+
         public JStatsComponent(ChrominFarmerConfig config) {
+            this.config = config;
+
             this.setOpaque(false);
             this.setPreferredSize(new Dimension(WIDTH,7 * HEIGHT));
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -108,18 +112,20 @@ public class ChrominFarmerConfig {
                 tmpLabel.setText(e.getKey() + ": " + val);
                 statsInfo.put(e.getKey(), tmpLabel);
 
-                config.STATS_INFO_UPDATE.add(key -> {
-                    if (!config.STATS_INFO.containsKey(key)) return;
-
-                    synchronized (config.lock) {
-                        JLabel label = this.statsInfo.get(key);
-                        int value = config.STATS_INFO.get(key);
-                        String stringVal = String.format("%,d", value);
-                        SwingUtilities.invokeLater(() -> label.setText(key + ": " + stringVal));
-                    }
-                });
+                config.STATS_INFO_UPDATE.add(this::onKeyReceived);
 
                 this.add(tmpLabel);
+            }
+        }
+
+        private void onKeyReceived(String key) {
+            if (!config.STATS_INFO.containsKey(key)) return;
+
+            synchronized (config.lock) {
+                JLabel label = this.statsInfo.get(key);
+                int value = config.STATS_INFO.get(key);
+                String stringVal = String.format("%,d", value);
+                SwingUtilities.invokeLater(() -> label.setText(key + ": " + stringVal));
             }
         }
 
