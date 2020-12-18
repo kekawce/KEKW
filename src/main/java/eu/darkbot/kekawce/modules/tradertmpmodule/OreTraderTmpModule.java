@@ -8,15 +8,16 @@ import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
-import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
 import com.github.manolo8.darkbot.core.objects.RefinementGui;
 import com.github.manolo8.darkbot.core.utils.Drive;
+import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
 import com.github.manolo8.darkbot.utils.Time;
+import eu.darkbot.kekawce.utils.Captcha;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
@@ -45,8 +46,8 @@ public class OreTraderTmpModule extends TemporalModule
     private OreTraderConfig config;
 
     private Iterator<OreTradeGui.Ore> ores;
-    private long sellTime, sellUntil;
-    private boolean hasAttemptedToSell;
+    private long sellTime, sellBtnTime = Long.MAX_VALUE, sellUntil;
+    private boolean hasAttemptedToSell, hasClickedTradeBtn;
 
     @Override
     public void install(Main main) {
@@ -74,7 +75,7 @@ public class OreTraderTmpModule extends TemporalModule
 
     @Override
     public String status() {
-        return StatusUtils.status("Ore Trader", "Selling", Maps.MAPS.get(config.SELL_MAP_INDEX) + " Station");
+        return StatusUtils.status("Ore Trader", "Selling", config.SELL_MAP.name + " Station");
     }
 
     @Override
@@ -89,7 +90,9 @@ public class OreTraderTmpModule extends TemporalModule
 
     @Override
     public void tickBehaviour() {
-        if (!config.ENABLE_FEATURE) return;
+        if (!config.ENABLE_FEATURE || config.ORES_TO_SELL.isEmpty()) return;
+        if (Captcha.exists(main.mapManager.entities.boxes)) return;
+
         boolean hasTarget = !(this.hero.target == null || this.hero.target.removed);
         if (hasTarget && this.config.FINISH_TARGET_BEFORE_SELLING) return;
 
@@ -103,9 +106,11 @@ public class OreTraderTmpModule extends TemporalModule
 
         sellTick();
 
-        if (!areSelectedResourcesSold()) return;
+        if (!areSelectedResourcesSold() && !oreSellBtnsAreBugged()) return;
         if (oreTrade.visible) {
             sellTime = 0;
+            sellBtnTime = Long.MAX_VALUE;
+            hasClickedTradeBtn = false;
             oreTrade.showTrade(false, null);
         }
         else goBack();
@@ -117,10 +122,16 @@ public class OreTraderTmpModule extends TemporalModule
 
     @Override
     protected void goBack() {
-        ores = null;
         ggExitPortal = null;
+        hasAttemptedToSell = false;
 
         super.goBack();
+    }
+
+    // bug that causes you to be unable to sell ores
+    private boolean oreSellBtnsAreBugged() {
+        return stats.deposit >= stats.depositTotal && oreTrade.visible &&
+                sellBtnTime <= System.currentTimeMillis();
     }
 
     private boolean shouldGoBackEarly() {
@@ -145,9 +156,8 @@ public class OreTraderTmpModule extends TemporalModule
             return;
         }
 
-        Map SELL_MAP;
-        if (this.hero.map != (SELL_MAP = this.main.starManager.byName(Maps.MAPS.get(this.config.SELL_MAP_INDEX)))) {
-            this.traveler.setTarget(SELL_MAP);
+        if (this.hero.map.id != config.SELL_MAP.id) {
+            this.traveler.setTarget(config.SELL_MAP);
             this.traveler.tick();
         }
         else {
@@ -159,27 +169,38 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private void travelToBaseAndSell(BasePoint b) {
-        if (b.locationInfo.distance(this.hero) > 200D ||
-                (System.currentTimeMillis() - sellTime > 5 * Time.SECOND && sellTime != 0)) { // trade btn not appearing
-            this.drive.move(b.locationInfo.now.x + ThreadLocalRandom.current().nextDouble(50D),
-                    b.locationInfo.now.y + ThreadLocalRandom.current().nextDouble(50D));
+        if (!oreTrade.visible && oreTrade.isAnimationDone() && // can't move while trade window is open or ores won't be sold (some weird DO bug)
+                ((drive.movingTo().distance(b) > 200D) ||
+                (System.currentTimeMillis() - sellTime > 5 * Time.SECOND && sellTime != 0))) { // trade btn not appearing
+            double angle = ThreadLocalRandom.current().nextDouble(2 * Math.PI);
+            double distance = 100 + ThreadLocalRandom.current().nextDouble(100);
+            drive.move(Location.of(b.locationInfo.now, angle, distance));
             this.sellTime = 0;
         } else {
             if (this.sellTime == 0) this.sellTime = System.currentTimeMillis();
-            if (oreTrade.showTrade(true, b)) {
-                ores = config.ORES_TO_SELL.iterator();
+            if (!hasClickedTradeBtn && !hero.locationInfo.isMoving() && oreTrade.showTrade(true, b)) {
+                hasClickedTradeBtn = true;
+                sellTime = Long.MAX_VALUE;
+                sellBtnTime = System.currentTimeMillis() + config.ADVANCED.SELL_DELAY * config.ORES_TO_SELL.size() + config.ADVANCED.SELL_WAIT;
                 sellUntil = System.currentTimeMillis() + config.ADVANCED.SELL_WAIT;
             }
 
-            if (sellUntil <= System.currentTimeMillis()) sellOres();
+            sellOres();
         }
     }
 
     private void sellOres() {
+        if (!oreTrade.visible || !oreTrade.isAnimationDone()) return;
         if (sellUntil > System.currentTimeMillis()) return;
         sellUntil = System.currentTimeMillis() + config.ADVANCED.SELL_DELAY;
 
-        if (ores.hasNext()) oreTrade.sellOre(ores.next());
+        if (ores == null || !ores.hasNext()) ores = config.ORES_TO_SELL.iterator();
+        if (!ores.hasNext()) return;
+
+        OreTradeGui.Ore ore = ores.next();
+        if (ore == null) return; // can occur due to GSON not finding a value (from name change in enum in darkbot)
+        oreTrade.sellOre(ore);
+
         hasAttemptedToSell = true;
     }
 
@@ -189,7 +210,7 @@ public class OreTraderTmpModule extends TemporalModule
                 .map(Enum::name)
                 .map(RefinementGui.OreType::valueOf)
                 .allMatch(ore -> ore == RefinementGui.OreType.PALLADIUM
-                        ? refinement.get(ore).getAmount() < 15
+                        ? !hero.map.name.equals("5-2") || refinement.get(ore).getAmount() < 15
                         : refinement.get(ore).getAmount() <= 0);
     }
 
@@ -203,7 +224,7 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private boolean checkGG() {
-        return !hero.map.gg || (config.SELL_MAP_INDEX == Maps.MAPS.indexOf("LoW") && hero.map.name.equals("LoW")) || existsValidPortal();
+        return !hero.map.gg || (config.SELL_MAP == Maps.getMap("LoW") && hero.map.name.equals("LoW")) || existsValidPortal();
     }
 
     private boolean existsValidPortal() {

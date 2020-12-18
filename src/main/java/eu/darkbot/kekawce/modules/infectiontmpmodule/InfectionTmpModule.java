@@ -14,6 +14,7 @@ import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.utils.Time;
+import eu.darkbot.kekawce.utils.Captcha;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
@@ -73,6 +74,7 @@ public class InfectionTmpModule extends TemporalModule
     public void tickBehaviour() {
         if (!config.ENABLE_FEATURE) return;
         if (!canInfect() || System.currentTimeMillis() - this.activeTime < 60 * Time.SECOND) return;
+        if (Captcha.exists(main.mapManager.entities.boxes)) return;
 
         if (waitTime == 0) waitTime = System.currentTimeMillis();
         if (this.main.module != this && System.currentTimeMillis() - waitTime > 15 * Time.SECOND) {

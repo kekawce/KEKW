@@ -13,6 +13,7 @@ import com.github.manolo8.darkbot.core.utils.Location;
 import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.utils.Time;
+import eu.darkbot.kekawce.utils.Captcha;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
 import eu.darkbot.kekawce.utils.StatusUtils;
 
@@ -128,6 +129,7 @@ public class ChrominFarmerTmpModule extends TemporalModule
         this.collector.tick();
 
         if (!canStartChrominFarmingModule()) return;
+        if (Captcha.exists(main.mapManager.entities.boxes)) return;
 
         if (this.main.module != this) main.setModule(this);
     }

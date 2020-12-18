@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Ores extends OptionList<OreTradeGui.Ore> {
-    public static final List<OreTradeGui.Ore> ORES = Arrays.asList(OreTradeGui.Ore.values());
+    private static final List<OreTradeGui.Ore> ORES = Arrays.asList(OreTradeGui.Ore.values());
     private static final List<String> OPTIONS = EnumSet.allOf(OreTradeGui.Ore.class).stream()
             .map(e -> e.name().toLowerCase()).collect(Collectors.toList());
 
