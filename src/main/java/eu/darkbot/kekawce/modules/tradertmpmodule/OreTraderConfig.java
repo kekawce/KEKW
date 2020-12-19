@@ -5,8 +5,6 @@ import com.github.manolo8.darkbot.config.types.Editor;
 import com.github.manolo8.darkbot.config.types.Num;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.config.types.Options;
-import com.github.manolo8.darkbot.core.manager.StarManager;
-import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
 import com.github.manolo8.darkbot.gui.tree.components.JCheckboxListField;
 import com.github.manolo8.darkbot.gui.tree.components.JListField;
@@ -22,7 +20,7 @@ public class OreTraderConfig {
     @Option(value = "Sell map", description = "goes to this map to sell resources")
     @Editor(JListField.class)
     @Options(Maps.class)
-    public Map SELL_MAP = StarManager.getInstance().byName("1-1");
+    public int SELL_MAP_ID = 1;
 
     @Option(value = "Sell config", description = "changes to this config when selling")
     public Config.ShipConfig SELL_CONFIG = new Config.ShipConfig(2, '9');

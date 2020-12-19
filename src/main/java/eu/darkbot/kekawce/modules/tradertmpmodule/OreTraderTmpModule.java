@@ -7,7 +7,9 @@ import com.github.manolo8.darkbot.core.entities.bases.BaseRefinery;
 import com.github.manolo8.darkbot.core.itf.Behaviour;
 import com.github.manolo8.darkbot.core.itf.Configurable;
 import com.github.manolo8.darkbot.core.manager.HeroManager;
+import com.github.manolo8.darkbot.core.manager.StarManager;
 import com.github.manolo8.darkbot.core.manager.StatsManager;
+import com.github.manolo8.darkbot.core.objects.Map;
 import com.github.manolo8.darkbot.core.objects.OreTradeGui;
 import com.github.manolo8.darkbot.core.objects.RefinementGui;
 import com.github.manolo8.darkbot.core.utils.Drive;
@@ -16,6 +18,7 @@ import com.github.manolo8.darkbot.extensions.features.Feature;
 import com.github.manolo8.darkbot.modules.TemporalModule;
 import com.github.manolo8.darkbot.modules.utils.MapTraveler;
 import com.github.manolo8.darkbot.modules.utils.PortalJumper;
+import com.github.manolo8.darkbot.utils.I18n;
 import com.github.manolo8.darkbot.utils.Time;
 import eu.darkbot.kekawce.utils.Captcha;
 import eu.darkbot.kekawce.utils.DefaultInstallable;
@@ -75,7 +78,13 @@ public class OreTraderTmpModule extends TemporalModule
 
     @Override
     public String status() {
-        return StatusUtils.status("Ore Trader", "Selling", config.SELL_MAP.name + " Station");
+        String state, map = getTargetMap().name;
+        if (hero.map.id != config.SELL_MAP_ID)
+            state = I18n.get("module.map_travel.status.no_next", map);
+        else if (bases.stream().filter(b -> b instanceof BaseRefinery).anyMatch(b -> hero.locationInfo.distance(b) > 300D))
+            state = "Travelling to station";
+        else state = "Selling";
+        return StatusUtils.status("Ore Trader", state, map + " Station");
     }
 
     @Override
@@ -111,6 +120,7 @@ public class OreTraderTmpModule extends TemporalModule
             sellTime = 0;
             sellBtnTime = Long.MAX_VALUE;
             hasClickedTradeBtn = false;
+            System.out.println("closing trade");
             oreTrade.showTrade(false, null);
         }
         else goBack();
@@ -156,8 +166,8 @@ public class OreTraderTmpModule extends TemporalModule
             return;
         }
 
-        if (this.hero.map.id != config.SELL_MAP.id) {
-            this.traveler.setTarget(config.SELL_MAP);
+        if (this.hero.map.id != config.SELL_MAP_ID) {
+            this.traveler.setTarget(getTargetMap());
             this.traveler.tick();
         }
         else {
@@ -175,10 +185,12 @@ public class OreTraderTmpModule extends TemporalModule
             double angle = ThreadLocalRandom.current().nextDouble(2 * Math.PI);
             double distance = 100 + ThreadLocalRandom.current().nextDouble(100);
             drive.move(Location.of(b.locationInfo.now, angle, distance));
+            System.out.println("moving");
             this.sellTime = 0;
         } else {
             if (this.sellTime == 0) this.sellTime = System.currentTimeMillis();
             if (!hasClickedTradeBtn && !hero.locationInfo.isMoving() && oreTrade.showTrade(true, b)) {
+                System.out.println("opening trade");
                 hasClickedTradeBtn = true;
                 sellTime = Long.MAX_VALUE;
                 sellBtnTime = System.currentTimeMillis() + config.ADVANCED.SELL_DELAY * config.ORES_TO_SELL.size() + config.ADVANCED.SELL_WAIT;
@@ -200,6 +212,7 @@ public class OreTraderTmpModule extends TemporalModule
         OreTradeGui.Ore ore = ores.next();
         if (ore == null) return; // can occur due to GSON not finding a value (from name change in enum in darkbot)
         oreTrade.sellOre(ore);
+        System.out.println("selling: " + ore);
 
         hasAttemptedToSell = true;
     }
@@ -224,7 +237,7 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private boolean checkGG() {
-        return !hero.map.gg || (config.SELL_MAP == Maps.getMap("LoW") && hero.map.name.equals("LoW")) || existsValidPortal();
+        return !hero.map.gg || (config.SELL_MAP_ID == 200 && hero.map.name.equals("LoW")) || existsValidPortal();
     }
 
     private boolean existsValidPortal() {
@@ -234,6 +247,10 @@ public class OreTraderTmpModule extends TemporalModule
                 .min(Comparator.comparingDouble(p -> p.locationInfo.distance(main.hero)))
                 .orElse(null);
         return ggExitPortal != null;
+    }
+
+    private Map getTargetMap() {
+        return StarManager.getInstance().byId(config.SELL_MAP_ID);
     }
 
 }
