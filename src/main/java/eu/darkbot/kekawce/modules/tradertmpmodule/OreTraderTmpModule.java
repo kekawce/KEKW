@@ -68,6 +68,7 @@ public class OreTraderTmpModule extends TemporalModule
         this.traveler = new MapTraveler(main);
         this.portals = main.mapManager.entities.portals;
         this.bases = main.mapManager.entities.basePoints;
+        Maps.ID = main.hero.playerInfo.factionId;
     }
 
     @Override
@@ -193,7 +194,7 @@ public class OreTraderTmpModule extends TemporalModule
                 System.out.println("opening trade");
                 hasClickedTradeBtn = true;
                 sellTime = Long.MAX_VALUE;
-                sellBtnTime = System.currentTimeMillis() + config.ADVANCED.SELL_DELAY * config.ORES_TO_SELL.size() + config.ADVANCED.SELL_WAIT;
+                sellBtnTime = System.currentTimeMillis() + (long) config.ADVANCED.SELL_DELAY * config.ORES_TO_SELL.size() + config.ADVANCED.SELL_WAIT;
                 sellUntil = System.currentTimeMillis() + config.ADVANCED.SELL_WAIT;
             }
 

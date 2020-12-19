@@ -6,10 +6,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Maps extends StarManager.MapList {
-    private static final List<String> OPTIONS = Arrays.asList("1-1", "2-1", "3-1", "5-2", "1-8", "2-8", "3-8", "LoW");
+    public static final List<String> OPTIONS_MMO = Arrays.asList("1-1", "5-2", "1-8", "LoW");
+    public static final List<String> OPTIONS_EIC = Arrays.asList("2-1", "5-2", "2-8", "LoW");
+    public static final List<String> OPTIONS_VRU = Arrays.asList("3-1", "5-2", "3-8", "LoW");
+    public static int ID;
 
     @Override
     public List<String> getOptions() {
-        return OPTIONS;
+        if (ID == 1) return OPTIONS_MMO;
+        else if (ID == 2) return OPTIONS_EIC;
+        else if (ID == 3) return OPTIONS_VRU;
+        return null;
     }
 }
