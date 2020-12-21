@@ -222,9 +222,16 @@ public class OreTraderTmpModule extends TemporalModule
                 .filter(Objects::nonNull)
                 .map(Enum::name)
                 .map(RefinementGui.OreType::valueOf)
-                .allMatch(ore -> ore == RefinementGui.OreType.PALLADIUM
-                        ? !hero.map.name.equals("5-2") || refinement.get(ore).getAmount() < 15
-                        : refinement.get(ore).getAmount() <= 0);
+                .allMatch(this::isOreSold);
+    }
+
+    private boolean isOreSold(RefinementGui.OreType ore) {
+        RefinementGui.Ore o = refinement.get(ore);
+        System.out.printf("checking if %s(type), %s(ore), is sold", ore, o);
+
+        return o != null && (ore == RefinementGui.OreType.PALLADIUM
+                ? !hero.map.name.equals("5-2") || o.getAmount() < 15
+                : o.getAmount() <= 0);
     }
 
     private void exitGG() {
