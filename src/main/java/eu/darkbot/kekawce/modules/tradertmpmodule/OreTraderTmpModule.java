@@ -68,7 +68,6 @@ public class OreTraderTmpModule extends TemporalModule
         this.traveler = new MapTraveler(main);
         this.portals = main.mapManager.entities.portals;
         this.bases = main.mapManager.entities.basePoints;
-        Maps.ID = main.hero.playerInfo.factionId;
     }
 
     @Override
@@ -108,6 +107,7 @@ public class OreTraderTmpModule extends TemporalModule
 
         if (this.stats.deposit >= this.stats.depositTotal && checkGG() && this.main.module != this)
             main.setModule(this);
+        Maps.ID = main.hero.playerInfo.factionId;
     }
 
     @Override
@@ -125,6 +125,7 @@ public class OreTraderTmpModule extends TemporalModule
             oreTrade.showTrade(false, null);
         }
         else goBack();
+        Maps.ID = main.hero.playerInfo.factionId;
     }
 
     @Override
