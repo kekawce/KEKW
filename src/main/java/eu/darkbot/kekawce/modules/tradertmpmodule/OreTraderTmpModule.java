@@ -125,7 +125,6 @@ public class OreTraderTmpModule extends TemporalModule
             oreTrade.showTrade(false, null);
         }
         else goBack();
-        Maps.ID = main.hero.playerInfo.factionId;
     }
 
     @Override
