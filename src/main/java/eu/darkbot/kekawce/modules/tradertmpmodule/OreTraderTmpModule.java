@@ -133,6 +133,11 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     @Override
+    public void tickStopped() {
+        Maps.ID = main.hero.playerInfo.factionId;
+    }
+
+    @Override
     protected void goBack() {
         ggExitPortal = null;
         hasAttemptedToSell = false;
