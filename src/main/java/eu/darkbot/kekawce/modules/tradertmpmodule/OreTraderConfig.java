@@ -20,7 +20,7 @@ public class OreTraderConfig {
     @Option(value = "Sell map", description = "goes to this map to sell resources")
     @Editor(JListField.class)
     @Options(Maps.class)
-    public int SELL_MAP_ID = 1;
+    public int SELL_MAP_NDX = 0;
 
     @Option(value = "Sell config", description = "changes to this config when selling")
     public Config.ShipConfig SELL_CONFIG = new Config.ShipConfig(2, '9');

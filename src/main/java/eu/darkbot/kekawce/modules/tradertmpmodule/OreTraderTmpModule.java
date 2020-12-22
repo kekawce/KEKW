@@ -78,13 +78,14 @@ public class OreTraderTmpModule extends TemporalModule
 
     @Override
     public String status() {
-        String state, map = getTargetMap().name;
-        if (hero.map.id != config.SELL_MAP_ID)
-            state = I18n.get("module.map_travel.status.no_next", map);
+        Map map = getTargetMap();
+        String state, name = map.name;
+        if (hero.map.id != map.id)
+            state = I18n.get("module.map_travel.status.no_next", name);
         else if (bases.stream().filter(b -> b instanceof BaseRefinery).anyMatch(b -> hero.locationInfo.distance(b) > 300D))
             state = "Travelling to station";
         else state = "Selling";
-        return StatusUtils.status("Ore Trader", state, map + " Station");
+        return StatusUtils.status("Ore Trader", state, name + " Station");
     }
 
     @Override
@@ -166,8 +167,9 @@ public class OreTraderTmpModule extends TemporalModule
             return;
         }
 
-        if (this.hero.map.id != config.SELL_MAP_ID) {
-            this.traveler.setTarget(getTargetMap());
+        Map targetMap = getTargetMap();
+        if (this.hero.map.id != targetMap.id) {
+            this.traveler.setTarget(targetMap);
             this.traveler.tick();
         }
         else {
@@ -244,7 +246,7 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private boolean checkGG() {
-        return !hero.map.gg || (config.SELL_MAP_ID == 200 && hero.map.name.equals("LoW")) || existsValidPortal();
+        return !hero.map.gg || (getTargetMap().name.equals("LoW") && hero.map.name.equals("LoW")) || existsValidPortal();
     }
 
     private boolean existsValidPortal() {
@@ -257,7 +259,9 @@ public class OreTraderTmpModule extends TemporalModule
     }
 
     private Map getTargetMap() {
-        return StarManager.getInstance().byId(config.SELL_MAP_ID);
+        String name = Maps.getName(config.SELL_MAP_NDX)
+                .replace('X', Character.forDigit(hero.playerInfo.factionId, 10));
+        return StarManager.getInstance().byName(name);
     }
 
 }
