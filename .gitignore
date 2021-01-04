@@ -1,0 +1,7 @@
+/build/.env
+/build/venv
+/build/__pycache__
+
+/.idea
+/*.iml
+/target
