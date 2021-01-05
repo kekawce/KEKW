@@ -16,9 +16,11 @@ jobs:
     - name: test
       run: |
          cd src/main/resources/
-         tmp = $(mktemp)
-         ver = "v1.9.9 beta 21"
+         tmp=$(mktemp)
+         ver="v1.9.9 beta 21"
          jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
+         rm tmp
+         cat plugin.json
 
 
         
