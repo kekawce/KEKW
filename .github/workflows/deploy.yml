@@ -4,7 +4,10 @@ on:
   workflow_dispatch
 
 jobs:
-  build:
+  deploy:
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
+      JAR_NAME: ${{ github.event.repository.name }}
 
     runs-on: ubuntu-latest
 
@@ -24,15 +27,18 @@ jobs:
         -keystore .keystore \
         -storepass ${{ secrets.STOREPASS }} \
         -keypass ${{ secrets.KEYPASS }} \
-        target/${{ github.event.repository.name }}.jar \
+        target/${JAR_NAME}.jar \
         ${{ secrets.ALIAS }}
-    - name: Update remote gist
+    - name: Update ${REPO_NAME}.jar and plugin.json
       run: |
         cd ../
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
         git clone --depth=1 https://gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
-        cp ${{ github.event.repository.name }}/target/${{ github.event.repository.name }}.jar remote/
+        cp ${REPO_NAME}/target/${JAR_NAME}.jar remote/
+        cp ${REPO_NAME}/src/main/resources/plugin.json remote/
+    - name: Push to remote gist
+      run: |
         cd remote
         git add .
         git commit -m "Testing"
