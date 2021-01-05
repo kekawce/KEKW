@@ -1,4 +1,4 @@
-name: Deployment
+name: test
 
 on:
   workflow_dispatch
@@ -38,8 +38,8 @@ jobs:
         cp ${REPO_NAME}/target/${JAR_NAME}.jar remote/
         cp ${REPO_NAME}/src/main/resources/plugin.json remote/
         cd remote
-     - name: test
-       run: pwd
+    - name: test
+      run: pwd
 
 
         
