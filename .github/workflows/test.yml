@@ -39,7 +39,11 @@ jobs:
         cp ${REPO_NAME}/src/main/resources/plugin.json remote/
         cd remote
     - name: test
-      run: pwd
+      run: |
+        pwd
+        ls
+        cd remote
+        ls
 
 
         
