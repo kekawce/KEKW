@@ -21,7 +21,7 @@ jobs:
       run: mvn -B package --file pom.xml
     - name: Sign jar
       run: |
-        echo ${{ secrets.KEYSTORE }} > .keystore.asc
+        echo "${{ secrets.KEYSTORE }}" > .keystore.asc
         gpg -d --passphrase ${{ secrets.PASSPHRASE }} --batch .keystore.asc > .keystore
         jarsigner \
         -keystore .keystore \
