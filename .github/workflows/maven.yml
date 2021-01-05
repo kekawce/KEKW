@@ -25,7 +25,11 @@ jobs:
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
         git clone --depth=1 https://gist.github.com/kekawce/dd496e2dd48fb610ca4bccc3be1f59f3 remote
+        stat remote/${{ github.event.repository.name }}.jar
         cp KEKW/target/${{ github.event.repository.name }}.jar remote/
+        cd remote
+        stat ${{ github.event.repository.name }}.jar
+        
 
         
         
