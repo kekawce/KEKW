@@ -39,10 +39,7 @@ jobs:
         cp ${REPO_NAME}/src/main/resources/plugin.json remote/
     - name: Push to remote gist
       run: |
-        cd remote
-        git add .
-        git commit -m "Testing"
-        git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git
+        ls remote
 
         
 
