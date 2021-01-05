@@ -34,10 +34,9 @@ jobs:
         git clone --depth=1 https://gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
         cp ${{ github.event.repository.name }}/target/${{ github.event.repository.name }}.jar remote/
         cd remote
-        git remote set-url origin https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3
         git add .
         git commit -m "Testing"
-        git push
+        git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git
 
         
 
