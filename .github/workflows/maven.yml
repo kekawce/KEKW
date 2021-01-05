@@ -19,6 +19,16 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+    - name: Sign jar
+      run: |
+        echo ${{ secrets.KEYSTORE }} > .keystore.asc
+        gpg -d --passphrase ${{ secrets.PASSPHRASE }} --batch .keystore.asc > .keystore
+        jarsigner \
+        -keystore .keystore \
+        -storepass ${{ secrets.STOREPASS }} \
+        -keypass ${{ secrets.KEYPASS }} \
+        target/${{ github.event.repository.name }}.jar \
+        ${{ secrets.ALIAS }}
     - name: Update remote gist
       run: |
         cd ../
