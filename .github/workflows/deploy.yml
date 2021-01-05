@@ -32,9 +32,10 @@ jobs:
     - name: Update version
       run: |
         cd src/main/resources/
-        tmp = $(mktemp)
-        ver = "v1.9.9 beta 21"
+        tmp=$(mktemp)
+        ver="v1.9.9 beta 21"
         jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
+        mv "$tmp" plugin.json
     - name: Update and push to remote gist
       run: |
         cd ../
@@ -47,8 +48,6 @@ jobs:
         git add .
         git commit -m "Testing"
         git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git
-
-        
 
         
         
