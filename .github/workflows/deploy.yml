@@ -29,6 +29,12 @@ jobs:
         -keypass ${{ secrets.KEYPASS }} \
         target/${JAR_NAME}.jar \
         ${{ secrets.ALIAS }}
+    - name: Update version
+      run: |
+        cd src/main/resources/
+        tmp = $(mktemp)
+        ver = "v1.9.9 beta 21"
+        jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
     - name: Update and push to remote gist
       run: |
         cd ../
