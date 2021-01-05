@@ -19,6 +19,7 @@ jobs:
          tmp=$(mktemp)
          ver="v1.9.9 beta 21"
          jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
+         mv "$tmp" plugin.json
          rm "$tmp"
          cat plugin.json
 
