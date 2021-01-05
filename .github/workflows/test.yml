@@ -13,35 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-    - name: Sign jar
-      run: |
-        echo "${{ secrets.KEYSTORE }}" > .keystore.asc
-        gpg -d --passphrase ${{ secrets.PASSPHRASE }} --batch .keystore.asc > .keystore
-        jarsigner \
-        -keystore .keystore \
-        -storepass ${{ secrets.STOREPASS }} \
-        -keypass ${{ secrets.KEYPASS }} \
-        target/${JAR_NAME}.jar \
-        ${{ secrets.ALIAS }}
-    - name: Update "${JAR_NAME}".jar and plugin.json
-      run: |
-        cd ../
-        git config --global user.email "cli@github.com"
-        git config --global user.name "Github Actions"
-        git clone --depth=1 https://gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
-        cp ${REPO_NAME}/target/${JAR_NAME}.jar remote/
-        cp ${REPO_NAME}/src/main/resources/plugin.json remote/
     - name: test
       run: |
-        cd ../remote/
-        git add .
-        git commit -m "testubg"
+         cd src/main/resources/
+         tmp = $(mktemp)
+         ver = "v1.9.9 beta 21"
+         jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
 
 
         
