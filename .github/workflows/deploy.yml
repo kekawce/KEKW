@@ -32,7 +32,8 @@ jobs:
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
         git clone --depth=1 https://gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
-        cp KEKW/target/${{ github.event.repository.name }}.jar remote/
+        cp ${{ github.event.repository.name }}/target/${{ github.event.repository.name }}.jar remote/
+        cd remote
         git add .
         git commit -m "Testing"
         git push https://github.com/kekawce:${{ secrets.API_TOKEN_GITHUB }}@gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git
