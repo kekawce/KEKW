@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -19,5 +19,13 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: Print cwd
-      run: pwd
+    - name: Update remote gist
+      run: |
+        cd ../
+        git config --global user.email "cli@github.com"
+        git config --global user.name "Github Actions"
+        git clone --depth=1 https://gist.github.com/kekawce/dd496e2dd48fb610ca4bccc3be1f59f3 remote
+        cp KEKW/target/${{ github.event.repository.name }}.jar remote/
+
+        
+        
