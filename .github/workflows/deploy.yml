@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Java CI with Maven
+name: Deployment
 
 on:
   workflow_dispatch
@@ -34,11 +31,11 @@ jobs:
         cd ../
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
-        git clone --depth=1 https://gist.github.com/kekawce/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
+        git clone --depth=1 https://gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
         cp KEKW/target/${{ github.event.repository.name }}.jar remote/
         git add .
         git commit -m "Testing"
-        git push https://github.com/kekawce:${{ secrets.API_TOKEN_GITHUB }}@gist.github.com/kekawce/dd496e2dd48fb610ca4bccc3be1f59f3
+        git push https://github.com/kekawce:${{ secrets.API_TOKEN_GITHUB }}@gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git
 
         
 
