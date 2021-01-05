@@ -40,7 +40,7 @@ jobs:
         cd remote
     - name: test
       run: |
-        pwd
+        cd ..
         ls
         cd remote
         ls
