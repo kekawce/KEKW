@@ -33,7 +33,9 @@ jobs:
       run: |
         cd src/main/resources/
         tmp=$(mktemp)
-        ver="v1.9.9 beta 21"
+        ver="${GITHUB_REF#refs/*/}"
+        ver=$(echo "$ver" | tr '-' ' ')
+        ver="${ver:1}"
         jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
         mv "$tmp" plugin.json
     - name: Update and push to remote gist
