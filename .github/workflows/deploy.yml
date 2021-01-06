@@ -14,12 +14,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+
     - name: Sign jar
       run: |
         echo "${{ secrets.KEYSTORE }}" > .keystore.asc
@@ -30,6 +33,7 @@ jobs:
         -keypass ${{ secrets.KEYPASS }} \
         target/$JAR_NAME.jar \
         ${{ secrets.ALIAS }}
+
     - name: Set env variables
       run: |
         tag=${GITHUB_REF#refs/*/}
@@ -38,19 +42,19 @@ jobs:
         ver="${ver:1}"
         echo "TAG=$tag" >> $GITHUB_ENV
         echo "VER=$ver" >> $GITHUB_ENV
+
     - name: Update version and push
       run: |
-        git config --global user.email "cli@github.com"
-        git config --global user.name "Github Actions"
-        git fetch
-        git checkout master
         cd src/main/resources/
         tmp=$(mktemp)
         jq --arg v "$VER" '.version = $v' plugin.json > "$tmp"
         mv "$tmp" plugin.json
+        git config --global user.email "cli@github.com"
+        git config --global user.name "Github Actions"
         git commit -am "Update to v$VER"
         git tag -a -f $TAG -m "$JAR_NAME v$VER"
-        git push -f --tags
+        git push -f --atomic origin master $TAG
+
     - name: Update and push to remote gist
       env:
         GIST_LINK: "gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git"
