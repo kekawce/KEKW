@@ -47,15 +47,17 @@ jobs:
       run: |
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
-        git fetch origin
-        git checkout master
         cd src/main/resources/
-        tmp=$(mktemp)
-        jq --arg v "$VER" '.version = $v' plugin.json > "$tmp"
-        mv "$tmp" plugin.json
-        git commit -am "Update to v$VER"
-        git tag -a -f $TAG -m "$JAR_NAME v$VER"
-        git push -f --atomic origin master $TAG
+        if [ "$(jq -r '.version' plugin.json)" != "$VER" ]; then
+          git fetch origin
+          git checkout master
+          tmp=$(mktemp)
+          jq --arg v "$VER" '.version = $v' plugin.json > "$tmp"
+          mv "$tmp" plugin.json
+          git commit -am "Update to v$VER"
+          git tag -a -f $TAG -m "$JAR_NAME v$VER"
+          git push -f --atomic origin master $TAG
+        fi
 
     - name: Update and push to remote gist
       env:
