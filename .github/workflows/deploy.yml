@@ -1,7 +1,9 @@
 name: Deployment
 
 on:
-  workflow_dispatch
+  push:
+    branches: master
+    tags: v[0-9]*
 
 jobs:
   deploy:
@@ -29,7 +31,7 @@ jobs:
         -keypass ${{ secrets.KEYPASS }} \
         target/${JAR_NAME}.jar \
         ${{ secrets.ALIAS }}
-    - name: Update version
+    - name: Update version and push
       run: |
         cd src/main/resources/
         tmp=$(mktemp)
@@ -38,11 +40,14 @@ jobs:
         ver="${ver:1}"
         jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
         mv "$tmp" plugin.json
+        git config --global user.email "cli@github.com"
+        git config --global user.name "Github Actions"
+        git add .
+        git commit -m "Update to v${ver}"
+        git push
     - name: Update and push to remote gist
       run: |
         cd ../
-        git config --global user.email "cli@github.com"
-        git config --global user.name "Github Actions"
         git clone --depth=1 https://gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git remote
         cp ${REPO_NAME}/target/${JAR_NAME}.jar remote/
         cp ${REPO_NAME}/src/main/resources/plugin.json remote/
