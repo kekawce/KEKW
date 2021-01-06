@@ -32,32 +32,32 @@ jobs:
         target/${JAR_NAME}.jar \
         ${{ secrets.ALIAS }}
     - name: Update version and push
-      env: 
-        TAG: ${GITHUB_REF#refs/*/}
       run: |
         cd src/main/resources/
         tmp=$(mktemp)
-        ver="${TAG}"
+        echo ::set-env name=TAG::${GITHUB_REF#refs/*/}
+        ver="$TAG"
         ver=$(echo "$ver" | tr '-' ' ')
         ver="${ver:1}"
+        echo ::set-env name=VER::$ver
         jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
         mv "$tmp" plugin.json
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
         git commit -am "Update to v${ver}"
-        git tag -f -a ${TAG}
+        git tag -f -a $TAG
         git push -f --tags
     - name: Update and push to remote gist
       env:
         GIST_LINK: "gist.github.com/dd496e2dd48fb610ca4bccc3be1f59f3.git"
       run: |
         cd ../
-        git clone --depth=1 https://${GIST_LINK} remote
+        git clone --depth=1 https://$GIST_LINK remote
         cp ${REPO_NAME}/target/${JAR_NAME}.jar remote/
         cp ${REPO_NAME}/src/main/resources/plugin.json remote/
         cd remote
-        git commit -am "Testing"
-        git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@${GIST_LINK}
+        git commit -am "Update to v${VER}"
+        git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@$GIST_LINK
 
         
         
