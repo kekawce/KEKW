@@ -14,7 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
-      run: echo "${GITHUB_REF}"
+      run: |
+        ver="${GITHUB_REF#refs/*/}"
+        ver=$(echo "$ver" | tr '-' ' ')
+        ver="${ver:1}"
+        echo "$ver"
+
 
 
         
