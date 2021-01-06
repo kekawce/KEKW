@@ -29,7 +29,7 @@ jobs:
         -keystore .keystore \
         -storepass ${{ secrets.STOREPASS }} \
         -keypass ${{ secrets.KEYPASS }} \
-        target/${JAR_NAME}.jar \
+        target/$JAR_NAME.jar \
         ${{ secrets.ALIAS }}
     - name: Update version and push
       run: |
@@ -45,7 +45,7 @@ jobs:
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
         git commit -am "Update to v${ver}"
-        git tag -f -a $TAG
+        git tag -f -a $TAG -m "${JAR_NAME} v${ver}"
         git push -f --tags
     - name: Update and push to remote gist
       env:
@@ -53,11 +53,8 @@ jobs:
       run: |
         cd ../
         git clone --depth=1 https://$GIST_LINK remote
-        cp ${REPO_NAME}/target/${JAR_NAME}.jar remote/
-        cp ${REPO_NAME}/src/main/resources/plugin.json remote/
+        cp $REPO_NAME/target/$JAR_NAME.jar remote/
+        cp $REPO_NAME/src/main/resources/plugin.json remote/
         cd remote
         git commit -am "Update to v${VER}"
         git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@$GIST_LINK
-
-        
-        
