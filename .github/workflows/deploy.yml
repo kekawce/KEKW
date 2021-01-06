@@ -30,21 +30,24 @@ jobs:
         -keypass ${{ secrets.KEYPASS }} \
         target/$JAR_NAME.jar \
         ${{ secrets.ALIAS }}
+    - name: Set env variables
+      run: |
+        tag=${GITHUB_REF#refs/*/}
+        ver="$tag"
+        ver=$(echo "$ver" | tr '-' ' ')
+        ver="${ver:1}"
+        echo "TAG=$tag" >> $GITHUB_ENV
+        echo "VER=$ver" >> $GITHUB_ENV
     - name: Update version and push
       run: |
         cd src/main/resources/
         tmp=$(mktemp)
-        echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-        ver="$TAG"
-        ver=$(echo "$ver" | tr '-' ' ')
-        ver="${ver:1}"
-        echo "VER=$ver" >> $GITHUB_ENV
-        jq --arg v "$ver" '.version = $v' plugin.json > "$tmp"
+        jq --arg v "$VER" '.version = $v' plugin.json > "$tmp"
         mv "$tmp" plugin.json
         git config --global user.email "cli@github.com"
         git config --global user.name "Github Actions"
-        git commit -am "Update to v${ver}"
-        git tag -f -a $TAG -m "${JAR_NAME} v${ver}"
+        git commit -am "Update to v$VER"
+        git tag -a -f $TAG -m "$JAR_NAME v$VER"
         git push -f --tags
     - name: Update and push to remote gist
       env:
@@ -55,5 +58,5 @@ jobs:
         cp $REPO_NAME/target/$JAR_NAME.jar remote/
         cp $REPO_NAME/src/main/resources/plugin.json remote/
         cd remote
-        git commit -am "Update to v${VER}"
+        git commit -am "v$VER"
         git push https://${GITHUB_ACTOR}:${{ secrets.PAT }}@$GIST_LINK
