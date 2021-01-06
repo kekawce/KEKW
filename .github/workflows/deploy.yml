@@ -20,6 +20,31 @@ jobs:
       with:
         java-version: 1.8
 
+    - name: Set env variables
+      run: |
+        tag=${GITHUB_REF#refs/*/}
+        ver="$tag"
+        ver=$(echo "$ver" | tr '-' ' ')
+        ver="${ver:1}"
+        git config --global user.email "cli@github.com"
+        git config --global user.name "Github Actions"
+        echo "TAG=$tag" >> $GITHUB_ENV
+        echo "VER=$ver" >> $GITHUB_ENV
+        echo "CURR_VER=$(jq -r '.version' plugin.json)" >> $GITHUB_ENV
+
+    - name: Update version and push
+      if: ${{ env.CURR_VER != env.VER }}
+      run: |
+        cd src/main/resources/
+        git fetch origin
+        git checkout master
+        tmp=$(mktemp)
+        jq --arg v "$VER" '.version = $v' plugin.json > "$tmp"
+        mv "$tmp" plugin.json
+        git commit -am "Update to v$VER"
+        git tag -a -f $TAG -m "$JAR_NAME v$VER"
+        git push -f --atomic origin master $TAG
+        
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
@@ -33,31 +58,6 @@ jobs:
         -keypass ${{ secrets.KEYPASS }} \
         target/$JAR_NAME.jar \
         ${{ secrets.ALIAS }}
-
-    - name: Set env variables
-      run: |
-        tag=${GITHUB_REF#refs/*/}
-        ver="$tag"
-        ver=$(echo "$ver" | tr '-' ' ')
-        ver="${ver:1}"
-        echo "TAG=$tag" >> $GITHUB_ENV
-        echo "VER=$ver" >> $GITHUB_ENV
-
-    - name: Update version and push
-      run: |
-        git config --global user.email "cli@github.com"
-        git config --global user.name "Github Actions"
-        cd src/main/resources/
-        if [ "$(jq -r '.version' plugin.json)" != "$VER" ]; then
-          git fetch origin
-          git checkout master
-          tmp=$(mktemp)
-          jq --arg v "$VER" '.version = $v' plugin.json > "$tmp"
-          mv "$tmp" plugin.json
-          git commit -am "Update to v$VER"
-          git tag -a -f $TAG -m "$JAR_NAME v$VER"
-          git push -f --atomic origin master $TAG
-        fi
 
     - name: Update and push to remote gist
       env:
