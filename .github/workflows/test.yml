@@ -16,13 +16,15 @@ jobs:
     - name: test
       run: |
         echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-        ver="$TAG"
+        ver=$TAG
         echo "$ver"
         ver=$(echo "$ver" | tr '-' ' ')
         ver="${ver:1}"
         echo "$ver"
-        echo "$TAG"
+        echo "${{ env.TAG }}"
+        echo $TAG
         echo "VER=$ver" >> $GITHUB_ENV
+        echo $VER
 
 
 
