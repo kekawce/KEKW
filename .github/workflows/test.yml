@@ -15,10 +15,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: test
       run: |
-        ver="${GITHUB_REF#refs/*/}"
+        echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        ver="$TAG"
+        echo "$ver"
         ver=$(echo "$ver" | tr '-' ' ')
         ver="${ver:1}"
         echo "$ver"
+        echo "$TAG"
+        echo "VER=$ver" >> $GITHUB_ENV
 
 
 
