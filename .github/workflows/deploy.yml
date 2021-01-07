@@ -30,7 +30,7 @@ jobs:
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         echo "TAG=$tag" >> $GITHUB_ENV
         echo "VER=$ver" >> $GITHUB_ENV
-        echo "CURR_VER=$(jq -r '.version' plugin.json)" >> $GITHUB_ENV
+        echo "CURR_VER=$(jq -r '.version' src/main/resources/plugin.json)" >> $GITHUB_ENV
 
     - name: Update version and push
       if: ${{ env.CURR_VER != env.VER }}
