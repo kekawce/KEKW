@@ -27,6 +27,7 @@ jobs:
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
                 console.log("CLOSSSSINGGGG");
                 rl.close();
+                rl..removeAllListeners();
               }  
             });
             console.log(`note: ${note}`)
