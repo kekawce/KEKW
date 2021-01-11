@@ -8,8 +8,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: test
-        run: git remote -v
+        
+      # Create ReleaseNote file
+      - name: Create ReleaseNote
+        id: release_note
+        uses: actions/github-script@0.3.0
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const rl = require('readline').createInterface({
+              input: require('fs').createReadStream('${{ github.workspace }}/CHANGELOG.md', 'utf8')
+            });
+            
+            let note = '';
+            rl.on('line', (line) => {
+              note += line;
+              if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note))
+                rl.close();
+            });
+            const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
+            require('@actions/core').setOutput('note', releaseNote);
+            
+     # Create GitHub release
+      - uses: actions/create-release@master
+        name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "test"
+          release_name: "testing"
+          body: |
+            ${{ steps.release_note.outputs.note }}
 
 
 
