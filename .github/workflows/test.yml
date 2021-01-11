@@ -22,18 +22,19 @@ jobs:
             
             let note = '';
             rl.on('line', (line) => {
-              console.log(`line: ${line}`)
               note += line;
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
-                console.log("CLOSSSSINGGGG");
+                const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
+                console.log(releaseNote)
+
                 rl.close();
                 rl.removeAllListeners();
+                
+                require('@actions/core').setOutput('note', releaseNote);:  
               }  
             });
-            console.log(`note: ${note}`)
-            const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
-            console.log(`release_note: ${releaseNote}`)
-            require('@actions/core').setOutput('note', releaseNote);
+
+
             
      # Create GitHub release
       - uses: actions/create-release@master
