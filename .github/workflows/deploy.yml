@@ -31,6 +31,38 @@ jobs:
         echo "TAG=$tag" >> $GITHUB_ENV
         echo "VER=$ver" >> $GITHUB_ENV
         echo "CURR_VER=$(jq -r '.version' src/main/resources/plugin.json)" >> $GITHUB_ENV
+    
+    - name: Check for and create release note
+      id: release_note
+      uses: actions/github-script@0.3.0
+      with:
+        github-token: ${{ secrets.PAT }}
+        script: |
+          const rl = require('readline').createInterface({
+            input: require('fs').createReadStream('${{ github.workspace }}/CHANGELOG.md', 'utf8')
+          });
+            
+          const core = require('@actions/core');
+          let note = '';
+          rl.on('line', (line) => {
+            note += line + '\n';
+            if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
+              const version = /# Version (?<ver>[\w\s.]+)/m.exec(note).groups.ver;
+              const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
+
+              rl.close();
+              rl.removeAllListeners();
+                
+              console.log(`Version: ${version}`);
+              if (version != ${{ env.VER }}) {
+                core.setFailed('No release note detected');
+                process.exit(1);
+              } 
+                
+              console.log(`Release Note: ${releaseNote}`);
+              core.setOutput('note', releaseNote);
+            }  
+          });
 
     - name: Update version and push
       if: ${{ env.CURR_VER != env.VER }}
@@ -79,6 +111,8 @@ jobs:
       with:
         tag_name: ${{ env.TAG }}
         release_name: Release v${{ env.VER }}
+        body: |
+          ${{ steps.release_note.outputs.note }}
       
     - name: Upload release asset
       uses: actions/upload-release-asset@v1
