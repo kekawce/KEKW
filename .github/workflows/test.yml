@@ -23,7 +23,7 @@ jobs:
             rl.on('line', (line) => {
               note += line + '\n';
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
-                const version = /# Version (?P<ver>[\w\s.]+)/m.exec(note).groups.ver;
+                const version = /# Version (?<ver>[\w\s.]+)/m.exec(note).groups.ver;
                 const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
                 console.log(`Version: ${version}`);  
                 console.log(`Release Note: ${releaseNote}`);
