@@ -26,7 +26,9 @@ jobs:
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note))
                 rl.close();
             });
+            console.log(`note: ${note}`)
             const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
+            console.log(`release_note: ${releaseNote}`)
             require('@actions/core').setOutput('note', releaseNote);
             
      # Create GitHub release
