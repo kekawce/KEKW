@@ -22,6 +22,7 @@ jobs:
             
             let note = '';
             rl.on('line', (line) => {
+            console.log(`line: ${line}`)
               note += line;
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note))
                 rl.close();
