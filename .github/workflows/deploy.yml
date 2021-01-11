@@ -54,7 +54,7 @@ jobs:
               rl.removeAllListeners();
                 
               console.log(`Version: ${version}`);
-              if (version != ${{ env.VER }}) {
+              if (version !== '${{ env.VER }}') {
                 core.setFailed('No release note detected');
                 process.exit(1);
               } 
