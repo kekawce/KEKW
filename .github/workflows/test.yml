@@ -9,8 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         
-      # Create ReleaseNote file
-      - name: Create ReleaseNote
+      - name: Create release note
         id: release_note
         uses: actions/github-script@0.3.0
         with:
@@ -23,11 +22,9 @@ jobs:
             let note = '';
             rl.on('line', (line) => {
               note += line + '\n';
-              console.log(`note: ${note}`);
-              console.log(`line: ${line}`);
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
                 const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
-                console.log(`releaseNote: ${releaseNote}`);
+                console.log(`Release Note: ${releaseNote}`);
 
                 rl.close();
                 rl.removeAllListeners();
