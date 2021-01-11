@@ -22,10 +22,12 @@ jobs:
             
             let note = '';
             rl.on('line', (line) => {
-            console.log(`line: ${line}`)
+              console.log(`line: ${line}`)
               note += line;
-              if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note))
+              if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
+                console.log("CLOSSSSINGGGG");
                 rl.close();
+              }  
             });
             console.log(`note: ${note}`)
             const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
