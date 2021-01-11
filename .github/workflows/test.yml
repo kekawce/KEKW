@@ -25,12 +25,12 @@ jobs:
               note += line;
               if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
                 const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
-                console.log(releaseNote)
+                console.log(releaseNote);
 
                 rl.close();
                 rl.removeAllListeners();
                 
-                require('@actions/core').setOutput('note', releaseNote);:  
+                require('@actions/core').setOutput('note', releaseNote);
               }  
             });
 
