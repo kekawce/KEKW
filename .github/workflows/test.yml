@@ -12,7 +12,7 @@ jobs:
       - name: test
         run: |
           cd src/main/resources
-          $version = jq .version plugin.json
+          version=$(jq .version plugin.json)
           echo $version
           
 
