@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
         
       - name: test
-        run: 
+        run: |
           cd src/main/resources
           $version = jq .version plugin.json
           echo $version
