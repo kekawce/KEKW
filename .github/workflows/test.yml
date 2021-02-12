@@ -9,44 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         
-      - name: Create release note
-        id: release_note
-        uses: actions/github-script@0.3.0
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const rl = require('readline').createInterface({
-              input: require('fs').createReadStream('${{ github.workspace }}/CHANGELOG.md', 'utf8')
-            });
-            
-            let note = '';
-            rl.on('line', (line) => {
-              note += line + '\n';
-              if (/(^# Version)(?:.|\n|\r)+?\1/m.test(note)) {
-                const version = /# Version (?<ver>[\w\s.]+)/m.exec(note).groups.ver;
-                const releaseNote = /\n[\w\W]+?(?=\# Version)/m.exec(note);
-                console.log(`Version: ${version}`);  
-                console.log(`Release Note: ${releaseNote}`);
-
-                rl.close();
-                rl.removeAllListeners();
-                
-                require('@actions/core').setOutput('note', releaseNote);
-              }  
-            });
-
-
-            
-     # Create GitHub release
-      - uses: actions/create-release@master
-        name: Create Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: "test"
-          release_name: "testing"
-          body: |
-            ${{ steps.release_note.outputs.note }}
+      - name: test
+        run: 
+          cd src/main/resources/
+          $version = jq .version plugin.json
+          echo $version
+          
 
 
 
