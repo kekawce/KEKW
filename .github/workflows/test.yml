@@ -1,4 +1,4 @@
-# testing
+# .github/workflows/test.yml
 name: test
 
 on:
