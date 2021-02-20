@@ -1,25 +1,18 @@
-# .github/workflows/test.yml
-name: test
+# .github/workflows/version.yml
+name: Git Version
 
 on:
   workflow_dispatch
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        
-      - name: test
-        run: |
-          cd src/main/resources
-          version=$(jq .version plugin.json)
-          echo $version
-          
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}   # checkout the correct branch name
+          fetch-depth: 0                # fetch the whole repo history
 
-
-
-        
-
-        
-        
+      - name: Git Version
+        uses: codacy/git-version@2.4.0
